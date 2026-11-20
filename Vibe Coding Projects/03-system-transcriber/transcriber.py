@@ -44,10 +44,35 @@ Log = Callable[[str], None]
 # ----------------------------------------------------------------------------
 
 _model_cache: dict = {}
+_priority_set = False
+
+
+def boost_priority() -> None:
+    """Run this process at 'above normal' Windows priority.
+
+    On a busy PC (browser, Steam, chat apps...) speech recognition at normal priority
+    was measured 15-30x slower (a 15 s chunk took 68-165 s instead of 4-5 s), which made
+    live mode fall minutes behind. Above-normal keeps it responsive without starving the PC.
+    """
+    global _priority_set
+    if _priority_set or sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        k = ctypes.WinDLL("kernel32", use_last_error=True)
+        k.GetCurrentProcess.restype = wintypes.HANDLE  # 64-bit handle, must not be truncated
+        k.SetPriorityClass.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        k.SetPriorityClass.restype = wintypes.BOOL
+        _priority_set = bool(k.SetPriorityClass(k.GetCurrentProcess(), 0x8000))  # ABOVE_NORMAL
+    except Exception:
+        pass
 
 
 def load_model(name: str, log: Log = print):
     """Load (or reuse an already loaded) Whisper model."""
+    boost_priority()
     if name in _model_cache:
         return _model_cache[name]
     from faster_whisper import WhisperModel
@@ -149,7 +174,16 @@ def transcribe_file(
     return txt_path
 
 
-def download_audio(url: str, folder: str, on_status: Log = print) -> tuple[Path, str]:
+class Cancelled(Exception):
+    """Raised when the user stops a job."""
+
+
+def download_audio(
+    url: str,
+    folder: str,
+    on_status: Log = print,
+    should_stop: Callable[[], bool] = lambda: False,
+) -> tuple[Path, str]:
     """Download only the audio track of a video link. Returns (file path, title)."""
     import yt_dlp
 
@@ -157,6 +191,8 @@ def download_audio(url: str, folder: str, on_status: Log = print) -> tuple[Path,
         raise ValueError("Only web links (http:// or https://) are allowed.")
 
     def hook(d):
+        if should_stop():
+            raise yt_dlp.utils.DownloadCancelled("Stopped by user")
         if d.get("status") == "downloading":
             total = d.get("total_bytes") or d.get("total_bytes_estimate") or 0
             if total:
@@ -173,9 +209,18 @@ def download_audio(url: str, folder: str, on_status: Log = print) -> tuple[Path,
         "progress_hooks": [hook],
     }
     on_status("Downloading audio...")
-    with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        path = Path(ydl.prepare_filename(info))
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            path = Path(ydl.prepare_filename(info))
+    except yt_dlp.utils.DownloadCancelled as e:
+        raise Cancelled() from e
+    except yt_dlp.utils.DownloadError as e:
+        if should_stop():
+            raise Cancelled() from e
+        raise ValueError(f"Could not download that link: {e}") from e
+    if not path.exists():
+        raise ValueError("The download was skipped (file larger than 2 GB or no audio available).")
     return path, info.get("title") or "video"
 
 
@@ -212,7 +257,10 @@ def to_whisper_audio(chunk: np.ndarray, channels: int, rate: int) -> np.ndarray:
 class LiveSession:
     """Captures system audio and transcribes it in chunks on a background thread."""
 
-    SILENCE_RMS = 0.004  # below this a block counts as silence
+    PAUSE_RMS = 0.004        # per-block level used to detect natural pauses
+    SILENCE_PEAK = 0.002     # a chunk whose loudest sample is below this is pure silence
+    MAX_LAG = 30.0           # if transcription falls this far behind, skip ahead to stay live
+    STOP_FLUSH_LIMIT = 20.0  # on Stop, transcribe at most this much pending audio
 
     def __init__(
         self,
@@ -220,7 +268,7 @@ class LiveSession:
         device_index: Optional[int] = None,
         language: str = "auto",
         min_chunk: float = 5.0,
-        max_chunk: float = 15.0,
+        max_chunk: float = 10.0,
         beam: int = 1,
         on_line: Log = print,
         on_status: Log = print,
@@ -237,10 +285,22 @@ class LiveSession:
         OUT_DIR.mkdir(exist_ok=True)
         self.out_path = OUT_DIR / f"live_{dt.datetime.now():%Y%m%d_%H%M%S}.txt"
         self.device_name = ""
+        self.error: Optional[str] = None
+
+        # Live state the window reads to show what's going on
+        self.last_block_at: Optional[float] = None  # any data from the device (even silence)
+        self.last_sound_at: Optional[float] = None  # audible sound
+        self.transcribing = False
+        self.lines_written = 0
+
         self._q: "queue.Queue[tuple[float, np.ndarray]]" = queue.Queue()
+        self._queued_frames = 0
+        self._count_lock = threading.Lock()
         self._stop = threading.Event()
+        self._cancel = threading.Event()  # set if Stop gave up waiting: emit nothing more
         self._thread: Optional[threading.Thread] = None
-        self._last_warn = 0.0
+        self._stream = None
+        self._pa = None
 
     # -- lifecycle ---------------------------------------------------------
 
@@ -255,63 +315,113 @@ class LiveSession:
                 dev = self._pa.get_default_wasapi_loopback()
         except Exception as e:
             self._pa.terminate()
-            raise RuntimeError(f"Could not find a loopback audio device: {e}") from e
+            raise RuntimeError(f"Could not find that audio device ({e}). Click Refresh and try again.") from e
 
         self.device_name = dev["name"]
         self.channels = int(dev["maxInputChannels"]) or 2
         self.rate = int(dev["defaultSampleRate"])
 
         def callback(in_data, frame_count, time_info, status):
-            # Store the moment the audio was heard, so timestamps stay right even if we lag
-            self._q.put((time.time(), np.frombuffer(in_data, dtype=np.int16).copy()))
+            if not self._stop.is_set():
+                # Store when the audio was heard, so timestamps stay right even if we lag
+                self._q.put((time.time(), np.frombuffer(in_data, dtype=np.int16).copy()))
+                with self._count_lock:
+                    self._queued_frames += frame_count
             return (in_data, pyaudio.paContinue)
 
-        self._stream = self._pa.open(
-            format=pyaudio.paInt16,
-            channels=self.channels,
-            rate=self.rate,
-            input=True,
-            input_device_index=dev["index"],
-            frames_per_buffer=int(self.rate * 0.1),
-            stream_callback=callback,
-        )
+        try:
+            self._stream = self._pa.open(
+                format=pyaudio.paInt16,
+                channels=self.channels,
+                rate=self.rate,
+                input=True,
+                input_device_index=dev["index"],
+                frames_per_buffer=int(self.rate * 0.1),
+                stream_callback=callback,
+            )
+        except Exception as e:
+            self._pa.terminate()
+            raise RuntimeError(f"Could not open {self.device_name}: {e}") from e
+
         self.start_time = time.time()
         self._thread = threading.Thread(target=self._worker, daemon=True)
         self._thread.start()
 
-    def stop(self, wait: float = 60) -> None:
+    def stop(self, wait: float = 30) -> None:
+        """Stop capturing now; finish the chunk in progress (up to `wait` seconds)."""
+        self._stop.set()
         try:
-            self._stream.stop_stream()
-            self._stream.close()
-            self._pa.terminate()
+            if self._stream is not None:
+                self._stream.stop_stream()
+                self._stream.close()
+            if self._pa is not None:
+                self._pa.terminate()
         except Exception:
             pass
-        self._stop.set()
         if self._thread:
             self._thread.join(timeout=wait)
+            if self._thread.is_alive():
+                self._cancel.set()  # give up: the worker must not add text after Stop
 
     def is_running(self) -> bool:
         return bool(self._thread and self._thread.is_alive())
 
+    def backlog_seconds(self) -> float:
+        rate = getattr(self, "rate", 0)
+        return self._queued_frames / rate if rate else 0.0
+
     # -- processing --------------------------------------------------------
+
+    def _emit(self, line: str, out) -> None:
+        if self._cancel.is_set():
+            return
+        self.on_line(line)
+        out.write(line + "\n")
+        out.flush()
+        self.lines_written += 1
+
+    def _take(self) -> tuple[float, np.ndarray]:
+        heard_at, block = self._q.get(timeout=0.5)
+        with self._count_lock:
+            self._queued_frames -= len(block) // self.channels
+        return heard_at, block
+
+    def _discard_backlog(self, keep_seconds: float) -> float:
+        """Drop queued audio until at most `keep_seconds` remain. Returns seconds dropped."""
+        dropped = 0
+        while self.backlog_seconds() > keep_seconds:
+            try:
+                _, block = self._take()
+            except queue.Empty:
+                break
+            dropped += len(block) // self.channels
+        return dropped / self.rate
 
     def _transcribe_chunk(self, buf: list, buf_start: float, out) -> None:
         audio = to_whisper_audio(np.concatenate(buf), self.channels, self.rate)
-        level = float(np.sqrt(np.mean(audio ** 2))) if len(audio) else 0.0
+        peak = float(np.max(np.abs(audio))) if len(audio) else 0.0
         if self.debug:
-            self.on_status(f"[debug] chunk {len(audio) / WHISPER_RATE:.1f}s, level {level:.4f}")
-        if len(audio) < WHISPER_RATE * 0.5 or level < self.SILENCE_RMS:
+            self.on_status(f"[debug] chunk {len(audio) / WHISPER_RATE:.1f}s, peak {peak:.4f}")
+        if len(audio) < WHISPER_RATE * 0.5 or peak < self.SILENCE_PEAK:
             return  # too short or pure silence
+        if peak < 0.5:  # quiet video/call: boost it so speech detection still works
+            audio = audio * min(0.5 / peak, 30.0)
 
+        self.transcribing = True
         t0 = time.time()
-        segments, info = self.model.transcribe(
-            audio,
-            language=self.language,
-            vad_filter=True,
-            beam_size=self.beam,
-            condition_on_previous_text=False,
-        )
-        text = " ".join(s.text.strip() for s in segments).strip()
+        try:
+            segments, info = self.model.transcribe(
+                audio,
+                language=self.language,
+                vad_filter=True,
+                beam_size=self.beam,
+                temperature=0.0,  # no slow retry passes; keeps each chunk's time bounded
+                condition_on_previous_text=False,
+                without_timestamps=True,
+            )
+            text = " ".join(s.text.strip() for s in segments).strip()
+        finally:
+            self.transcribing = False
         if self.debug:
             self.on_status(f"[debug] transcribed in {time.time() - t0:.1f}s -> {len(text)} chars")
 
@@ -320,49 +430,73 @@ class LiveSession:
             self.language = info.language
             self.on_status(f"Language detected: {info.language} (locked in)")
 
-        backlog = self._q.qsize() * 0.1
-        if backlog > 20 and time.time() - self._last_warn > 60:
-            self._last_warn = time.time()
-            self.on_status(f"Falling behind by ~{backlog:.0f}s - try the 'tiny' model or close heavy apps")
-
         if text:
-            line = f"[{fmt_clock(buf_start - self.start_time)}] {text}"
-            self.on_line(line)
-            out.write(line + "\n")
-            out.flush()
+            self._emit(f"[{fmt_clock(buf_start - self.start_time)}] {text}", out)
 
     def _worker(self) -> None:
+        try:
+            self._run()
+        except Exception as e:  # never die silently: tell the window
+            import traceback
+
+            traceback.print_exc()
+            self.error = f"{e.__class__.__name__}: {e}"
+            self.on_status(f"Error: {self.error}")
+
+    def _run(self) -> None:
         buf: list = []
-        buf_samples = 0
+        buf_frames = 0
         buf_start = time.time()
         quiet_blocks = 0
-        frames_per_s = self.rate * self.channels
+        stop_handled = False
 
         with open(self.out_path, "w", encoding="utf-8") as out:
-            while not self._stop.is_set() or not self._q.empty():
+            while True:
+                if self._stop.is_set() and not stop_handled:
+                    stop_handled = True
+                    pending = self.backlog_seconds()
+                    if pending > self.STOP_FLUSH_LIMIT:
+                        skipped = self._discard_backlog(0)
+                        self._emit(f"[{fmt_clock(time.time() - self.start_time)}] "
+                                   f"[... last {skipped:.0f}s not transcribed (stopped) ...]", out)
+                if self._cancel.is_set() or (self._stop.is_set() and self._q.empty()):
+                    break
+
                 try:
-                    heard_at, block = self._q.get(timeout=0.5)
+                    heard_at, block = self._take()
                 except queue.Empty:
-                    if buf:  # nothing arriving -> flush what we have
+                    if buf:  # nothing arriving (playback paused) -> flush what we have
                         self._transcribe_chunk(buf, buf_start, out)
-                        buf, buf_samples, quiet_blocks = [], 0, 0
+                        buf, buf_frames, quiet_blocks = [], 0, 0
                     continue
 
+                self.last_block_at = heard_at
                 if not buf:
                     buf_start = heard_at
                 buf.append(block)
-                buf_samples += len(block)
+                buf_frames += len(block) // self.channels
 
                 rms = float(np.sqrt(np.mean((block.astype(np.float32) / 32768.0) ** 2))) if len(block) else 0
-                quiet_blocks = quiet_blocks + 1 if rms < self.SILENCE_RMS else 0
+                if rms >= self.PAUSE_RMS / 4:
+                    self.last_sound_at = heard_at
+                quiet_blocks = quiet_blocks + 1 if rms < self.PAUSE_RMS else 0
 
-                seconds = buf_samples / frames_per_s
+                seconds = buf_frames / self.rate
                 # Cut at a natural pause once we have enough, or force-cut at max length
                 if (seconds >= self.min_chunk and quiet_blocks >= 3) or seconds >= self.max_chunk:
                     self._transcribe_chunk(buf, buf_start, out)
-                    buf, buf_samples, quiet_blocks = [], 0, 0
+                    buf, buf_frames, quiet_blocks = [], 0, 0
 
-            if buf:
+                    # Too far behind? Skip ahead so the text stays live instead of minutes late
+                    if not self._stop.is_set() and self.backlog_seconds() > self.MAX_LAG:
+                        at = time.time() - self.start_time
+                        skipped = self._discard_backlog(2.0)
+                        self._emit(f"[{fmt_clock(at)}] [... {skipped:.0f}s skipped: "
+                                   f"PC too busy to keep up ...]", out)
+                        self.on_status("PC too busy to keep up - skipped ahead. "
+                                       "Try Quality 'tiny' or close heavy apps.")
+
+            if buf and not self._cancel.is_set():
                 self._transcribe_chunk(buf, buf_start, out)
 
 
@@ -442,7 +576,7 @@ def main() -> None:
     live.add_argument("--device", type=int, default=None, help="Loopback device index (see --list-devices)")
     live.add_argument("--list-devices", action="store_true", help="Show available audio outputs and exit")
     live.add_argument("--min-chunk", type=float, default=5.0, help="Min seconds before cutting at a pause")
-    live.add_argument("--max-chunk", type=float, default=15.0, help="Max seconds per chunk")
+    live.add_argument("--max-chunk", type=float, default=10.0, help="Max seconds per chunk")
     live.add_argument("--duration", type=float, default=0, help="Stop automatically after N seconds")
     live.add_argument("--debug", action="store_true", help="Print chunk diagnostics")
     live.add_argument("--beam", type=int, default=1,

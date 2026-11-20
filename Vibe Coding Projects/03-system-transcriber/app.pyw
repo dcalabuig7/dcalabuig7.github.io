@@ -66,7 +66,11 @@ class App:
         self.events: "queue.Queue[tuple[str, object]]" = queue.Queue()
         self.job: str | None = None  # None | "live" | "url" | "file"
         self.session: core.LiveSession | None = None
-        self.stop_flag = threading.Event()
+        self.stop_flag = threading.Event()     # stops url/file jobs
+        self.live_cancel = threading.Event()   # cancels a live start that is still loading
+        self.live_lock = threading.Lock()
+        self.no_sound_hint_shown = False
+        self._live_error_shown = False
         self.last_saved: Path | None = None
         self.live_started_at: float | None = None
         self.settings = self._load_settings()
@@ -319,6 +323,8 @@ class App:
         def wrapper():
             try:
                 target()
+            except core.Cancelled:
+                self._post("status", "Stopped.")
             except Exception as e:
                 traceback.print_exc()
                 self._post("error", str(e) or e.__class__.__name__)
@@ -330,27 +336,46 @@ class App:
 
     def _toggle_live(self):
         if self.job == "live":
-            self.live_btn.configure(state="disabled", text="Stopping...")
-            self.status_var.set("Stopping... finishing the last few seconds.")
-            session = self.session
-            threading.Thread(target=lambda: (session.stop(), self._post("live_stopped")),
-                             daemon=True).start()
+            with self.live_lock:
+                session = self.session
+                if session is None:  # still loading the model: cancel the start
+                    self.live_cancel.set()
+            if session is None:
+                self.live_btn.configure(state="disabled", text="Cancelling...")
+                self.status_var.set("Cancelling... (waiting for the speech model to finish loading)")
+                return
+            self._stop_live(session)
             return
 
         self._save_settings()
+        self.live_cancel.clear()
+        self.no_sound_hint_shown = False
         self._set_busy("live")
+        self.live_btn.configure(text="Cancel")
+        self.status_var.set("Starting... loading the speech model.")
         model_name, language = self._model(), self._language()
         device_index = self.devices.get(self.device_var.get())
 
         def job():
             model = core.load_model(model_name, log=lambda s: self._post("status", s))
+            if self.live_cancel.is_set():
+                self._post("live_cancelled")
+                return
             session = core.LiveSession(
                 model, device_index, language,
                 on_line=lambda s: self._post("line", s),
                 on_status=lambda s: self._post("status", s),
             )
             session.start()
-            self.session = session
+            with self.live_lock:  # Stop may have been pressed while the device was opening
+                cancelled = self.live_cancel.is_set()
+                if not cancelled:
+                    self.session = session
+            if cancelled:
+                session.stop(wait=5)
+                self._remove_if_empty(session)
+                self._post("live_cancelled")
+                return
             self._post("live_started", session)
 
         def wrapper():
@@ -359,8 +384,43 @@ class App:
             except Exception as e:
                 traceback.print_exc()
                 self._post("error", str(e))
-                self._post("finished")
+                self._post("live_cancelled")
         threading.Thread(target=wrapper, daemon=True).start()
+
+    def _stop_live(self, session):
+        self.live_btn.configure(state="disabled", text="Stopping...")
+        self.status_var.set("Stopping... finishing the current few seconds.")
+
+        def stop():
+            session.stop(wait=30)
+            self._post("live_stopped", session)
+        threading.Thread(target=stop, daemon=True).start()
+
+    @staticmethod
+    def _remove_if_empty(session) -> bool:
+        try:
+            if session.lines_written == 0 and session.out_path.stat().st_size == 0:
+                session.out_path.unlink()
+                return True
+        except OSError:
+            pass
+        return False
+
+    def _live_state(self, s) -> str:
+        """Short description of what the live session is doing right now."""
+        now = time.time()
+        if s.last_block_at is None or now - s.last_block_at > 3:
+            state = "no sound from this device"
+        elif s.last_sound_at is None or now - s.last_sound_at > 5:
+            state = "silence"
+        elif s.transcribing:
+            state = "hearing audio · transcribing"
+        else:
+            state = "hearing audio"
+        behind = s.backlog_seconds()
+        if behind >= 5:
+            state += f" · {behind:.0f}s behind"
+        return state
 
     # ---------------------------------------------------------- url / file
 
@@ -415,19 +475,24 @@ class App:
         def job():
             if kind == "url":
                 with tempfile.TemporaryDirectory() as tmp:
-                    audio, title = core.download_audio(source, tmp, on_status=status)
+                    audio, title = core.download_audio(source, tmp, on_status=status,
+                                                       should_stop=self.stop_flag.is_set)
                     if self.stop_flag.is_set():
-                        return
+                        raise core.Cancelled()
                     self._post("line", f"--- {title} ---")
                     model = core.load_model(model_name, log=status)
-                    status("Transcribing...")
+                    if self.stop_flag.is_set():
+                        raise core.Cancelled()
+                    status("Transcribing... (the first lines can take a moment)")
                     out = core.transcribe_file(model, audio, language, core.safe_name(title),
                                                on_line=lambda s: self._post("line", s),
                                                on_status=status, should_stop=self.stop_flag.is_set)
             else:
                 self._post("line", f"--- {source.name} ---")
                 model = core.load_model(model_name, log=status)
-                status("Transcribing...")
+                if self.stop_flag.is_set():
+                    raise core.Cancelled()
+                status("Transcribing... (the first lines can take a moment)")
                 out = core.transcribe_file(model, source, language, core.safe_name(source.stem),
                                            on_line=lambda s: self._post("line", s),
                                            on_status=status, should_stop=self.stop_flag.is_set)
@@ -473,28 +538,53 @@ class App:
                     self.open_file_btn.configure(state="normal")
                 elif kind == "live_started":
                     self.live_started_at = time.time()
+                    self._set_busy("live")  # turns the button into "Stop listening"
                     self.status_var.set(f"Listening to {payload.device_name.replace(' [Loopback]', '')}. "
                                         f"Saving to {payload.out_path.name}")
                 elif kind == "live_stopped":
-                    if self.session:
-                        self.last_saved = self.session.out_path
+                    session = payload
+                    if self._remove_if_empty(session):
+                        self.status_var.set("Stopped. Nothing was transcribed (no speech was heard).")
+                    else:
+                        self.last_saved = session.out_path
                         self.open_file_btn.configure(state="normal")
-                        self.status_var.set(f"Stopped. Saved to {self.session.out_path.name}")
-                    self.session = None
-                    self.live_started_at = None
-                    self.live_var.set("")
-                    self._set_busy(None)
+                        self.status_var.set(f"Stopped. Saved to {session.out_path.name}")
+                    self._reset_live()
+                elif kind == "live_cancelled":
+                    if not self.status_var.get().startswith("Error"):
+                        self.status_var.set("Cancelled.")
+                    self._reset_live()
                 elif kind == "finished":
-                    if self.job != "live" or self.session is None:
-                        self._set_busy(None)
+                    self._set_busy(None)
         except queue.Empty:
             pass
 
-        if self.live_started_at:
+        s = self.session
+        if self.live_started_at and s is not None:
+            if s.error and not s.is_running() and not self._live_error_shown:
+                self._live_error_shown = True
+                messagebox.showerror("System Transcriber", f"Live transcription stopped:\n{s.error}")
+                self._stop_live(s)
             dot = "●" if int(time.time() * 2) % 2 else "○"
-            self.live_var.set(f"{dot} LIVE  {core.fmt_clock(time.time() - self.live_started_at)}")
+            self.live_var.set(f"{dot} LIVE  {core.fmt_clock(time.time() - self.live_started_at)}"
+                              f"  ·  {self._live_state(s)}")
+            # Explain the most common reason for an empty transcript
+            silent_for = time.time() - (s.last_sound_at or self.live_started_at)
+            if silent_for > 10 and s.lines_written == 0 and not self.no_sound_hint_shown:
+                self.no_sound_hint_shown = True
+                self.status_var.set(
+                    f"No sound heard from {s.device_name.replace(' [Loopback]', '')} yet. "
+                    f"Is the video playing (not muted), and on this device? Check 'Listen to'.")
 
         self.root.after(100, self._poll)
+
+    def _reset_live(self):
+        with self.live_lock:
+            self.session = None
+        self.live_started_at = None
+        self._live_error_shown = False
+        self.live_var.set("")
+        self._set_busy(None)
 
     def _on_close(self):
         if self.job:
@@ -503,8 +593,11 @@ class App:
                                        "(What has been transcribed so far is already saved.)"):
                 return
             self.stop_flag.set()
-            if self.session:
-                self.session.stop(wait=5)
+            self.live_cancel.set()
+            with self.live_lock:
+                session = self.session
+            if session:
+                session.stop(wait=5)
         self.root.destroy()
 
 

@@ -46,8 +46,14 @@ transcribe file "C:\path\to\video.mp4" --model small --language es
 
 ## Tips and limits
 
-- Live mode records the device you choose (default: your current speakers or headphones). Muted audio can't be captured, and every sound gets transcribed, including notifications.
-- Live mode can fall behind on slow PCs. If you see "Falling behind", switch to `tiny` or close heavy apps.
+- Live mode records the device you choose (default: your current speakers or headphones). Every sound gets transcribed, including notifications.
+- **If nothing appears in live mode**, check the status bar. It shows `hearing audio`, `silence` or `no sound from this device`.
+  - **Windows output muted:** most drivers then capture only silence. Lower the volume instead of muting.
+  - **Wrong device:** the video plays on a different device than the one in "Listen to" (for example, Bluetooth headphones that just disconnected). Click **Refresh** and pick the right one.
+- Live text appears a few seconds after the speech, in chunks of up to 10 seconds.
+- The app runs at *above normal* Windows priority while working. On a busy PC (browser, Steam, chat apps), normal priority made speech recognition 15–30× slower.
+- If the PC still can't keep up, live mode **skips ahead** to stay current and marks the gap as `[... N s skipped ...]` instead of falling minutes behind. Choose Quality `tiny` or close heavy apps to avoid gaps.
+- **Stop** ends capture immediately and finishes only the last few seconds.
 - If YouTube links stop working, update the downloader:
   `.venv\Scripts\python.exe -m pip install -U yt-dlp`
 - Only transcribe calls or meetings when everyone involved agrees to it.
