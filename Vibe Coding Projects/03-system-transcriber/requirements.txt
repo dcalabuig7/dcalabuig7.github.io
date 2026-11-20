@@ -1,0 +1,9 @@
+# Pinned to the versions this project was tested with (Python 3.14, Windows 11).
+# yt-dlp breaks when YouTube changes things - update it with:
+#   .venv\Scripts\python.exe -m pip install -U yt-dlp
+faster-whisper==1.2.1
+ctranslate2==4.9.0
+av==16.1.0
+PyAudioWPatch==0.2.12.9
+yt-dlp==2026.10.26
+numpy==2.5.5

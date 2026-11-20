@@ -14,7 +14,14 @@ My first vibe coding project: a counter you can increase, decrease, and reset.
 - Remembers your count after a page refresh (via `localStorage`)
 
 ## How to run it
-Double-click `index.html` to open it in your browser. No installation needed.
+**▶ Open in your browser:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/01-click-counter/
+
+Or run it offline: [download the repository ZIP](https://github.com/dcalabuig7/dcalabuig7.github.io/archive/refs/heads/main.zip), extract it, and double-click `Vibe Coding Projects/01-click-counter/index.html`. No installation needed.
+
+## How to use it
+- Click **+** or **−** (or press the ↑ / ↓ arrow keys) to change the number.
+- Click **Reset** to go back to 0.
+- The count is saved in your browser, so it's still there after you close the tab.
 
 ## Ideas to try next
 - Add a "+5" button
