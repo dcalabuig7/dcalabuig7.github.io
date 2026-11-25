@@ -7,6 +7,7 @@ Small projects built with AI-assisted "vibe coding". Each one has its own README
 | 01 | [Click Counter](01-click-counter/) | A counter you can increase, decrease and reset | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/01-click-counter/) |
 | 02 | [Echoes of English](02-echoes-of-english/) | Sci-fi RPG where you progress by improving your English | [▶ Play in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/) |
 | 03 | [System Transcriber](03-system-transcriber/) | Windows app that transcribes PC audio, YouTube links and files | Desktop app, [install below](#03--system-transcriber) |
+| 04 | [Unit Converter](04-unit-converter/) | Converts length, weight and temperature units | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/04-unit-converter/) |
 
 ---
 
@@ -48,6 +49,16 @@ A Windows desktop program, so it can't run in a browser.
   Transcripts are saved as `.txt` (and `.srt` subtitles) in the `transcripts` folder. Everything runs offline on your PC.
 
 More: [03-system-transcriber/README.md](03-system-transcriber/README.md)
+
+## 04 · Unit Converter
+
+**▶ Open:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/04-unit-converter/
+
+- **Install:** nothing. It runs in any browser.
+- **Use:** pick a category (length, weight or temperature), type a number, and choose the "From" and "To" units. The answer updates as you type. Click **⇄** to swap the units.
+- **Offline:** download the repository (see below) and double-click `04-unit-converter/index.html`.
+
+More: [04-unit-converter/README.md](04-unit-converter/README.md)
 
 ---
 

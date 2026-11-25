@@ -1,0 +1,118 @@
+/* Make width and height include padding and borders (easier sizing) */
+* {
+  box-sizing: border-box;
+}
+
+/* The whole page: soft background, card centred in the middle */
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #eef2f7;
+  color: #1f2937;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* The white box that holds everything */
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.subtitle {
+  margin: 4px 0 20px;
+  color: #6b7280;
+}
+
+/* Labels sit on their own line above each box */
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Same look for text boxes and dropdown menus */
+input,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+}
+
+/* Blue outline when you click into a box */
+input:focus,
+select:focus {
+  outline: 2px solid #2563eb;
+  border-color: #2563eb;
+}
+
+/* "From" box, swap button and "To" box in one row */
+.units-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* Both unit boxes share the space equally */
+.unit-box {
+  flex: 1;
+}
+
+#swap {
+  padding: 10px 12px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+#swap:hover {
+  background: #1d4ed8;
+}
+
+/* The answer box */
+.result {
+  margin: 24px 0 0;
+  padding: 16px;
+  border-radius: 8px;
+  background: #eff6ff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* Error messages (like an empty box) shown in grey instead */
+.result.error {
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+/* On narrow phone screens, stack the unit boxes on top of each other */
+@media (max-width: 400px) {
+  .units-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

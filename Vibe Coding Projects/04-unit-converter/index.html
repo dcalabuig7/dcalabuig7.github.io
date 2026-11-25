@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- This line makes the page fit phone screens -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unit Converter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Unit Converter</h1>
+    <p class="subtitle">Length, weight and temperature</p>
+
+    <!-- 1. Choose what kind of thing to convert -->
+    <label for="category">Category</label>
+    <select id="category">
+      <option value="length">Length</option>
+      <option value="weight">Weight</option>
+      <option value="temperature">Temperature</option>
+    </select>
+
+    <!-- 2. Type the number to convert -->
+    <label for="amount">Value</label>
+    <input id="amount" type="number" value="1" step="any">
+
+    <!-- 3. Choose the units. JavaScript fills these menus in. -->
+    <div class="units-row">
+      <div class="unit-box">
+        <label for="from-unit">From</label>
+        <select id="from-unit"></select>
+      </div>
+
+      <button id="swap" type="button" title="Swap units" aria-label="Swap units">⇄</button>
+
+      <div class="unit-box">
+        <label for="to-unit">To</label>
+        <select id="to-unit"></select>
+      </div>
+    </div>
+
+    <!-- 4. JavaScript writes the answer here -->
+    <p id="result" class="result" aria-live="polite"></p>
+  </main>
+
+  <!-- Load the JavaScript last, so the HTML above already exists when it runs -->
+  <script src="script.js"></script>
+</body>
+</html>
