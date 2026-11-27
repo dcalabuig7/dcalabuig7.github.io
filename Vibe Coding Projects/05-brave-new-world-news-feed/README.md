@@ -2,9 +2,9 @@
 
 A daily news briefing in Spanish, with a 1984-style look. It covers the UK, Spain and the world in 8 sections, with the 5 most important stories of the day in each. Every story is checked against other sources and gets a stamp that says how solid it is.
 
-**▶ Open it:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/
+**▶ Open it:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/
 
-**Languages:** [Español](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) · [English](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/en/) · [Português](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/pt/) · [中文](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/zh/)
+**Languages:** [Español](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/) · [English](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/en/) · [Português](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/pt/) · [中文](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/zh/)
 
 ## What it does
 

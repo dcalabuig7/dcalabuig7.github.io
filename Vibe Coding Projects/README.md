@@ -5,10 +5,10 @@ Small projects built with AI-assisted "vibe coding". Each one has its own README
 | # | Project | What it is | Open it |
 |---|---------|------------|---------|
 | 01 | [Click Counter](01-click-counter/) | A counter you can increase, decrease and reset | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/01-click-counter/) |
-| 02 | [Echoes Game](02-echoes-of-english/) | Sci-fi RPG where you progress by improving your English | [▶ Play in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/) |
+| 02 | [Echoes Game](02-echoes-game/) | Sci-fi RPG where you progress by improving your English | [▶ Play in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-game/) |
 | 03 | [System Transcriber](03-system-transcriber/) | Windows app that transcribes PC audio, YouTube links and files | Desktop app, [install below](#03--system-transcriber) |
 | 04 | [Unit Converter](04-unit-converter/) | Converts length, weight and temperature units | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/04-unit-converter/) |
-| 05 | [Brave New World News Feed](05-brave-new-world/) | Daily verified news in Spanish, English, Portuguese and Chinese, with an iPhone widget | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) |
+| 05 | [Brave New World News Feed](05-brave-new-world-news-feed/) | Daily verified news in Spanish, English, Portuguese and Chinese, with an iPhone widget | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/) |
 
 ---
 
@@ -24,13 +24,13 @@ More: [01-click-counter/README.md](01-click-counter/README.md)
 
 ## 02 · Echoes Game
 
-**▶ Play:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/
+**▶ Play:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-game/
 
 - **Install:** nothing. It runs in any modern browser on computer, tablet or phone.
 - **Use:** click **Wake up ›**, then read each scene and write or choose your response. Missions train grammar, vocabulary and reading. Progress saves automatically in your browser. Use **Export backup** / **Import backup…** to keep it safe or move it to another device.
-- **Offline:** in the `02-echoes-of-english` folder run `python -m http.server 8000`, then open http://localhost:8000. (Double-clicking `index.html` doesn't work for this kind of web app.)
+- **Offline:** in the `02-echoes-game` folder run `python -m http.server 8000`, then open http://localhost:8000. (Double-clicking `index.html` doesn't work for this kind of web app.)
 
-More: [02-echoes-of-english/README.md](02-echoes-of-english/README.md)
+More: [02-echoes-game/README.md](02-echoes-game/README.md)
 
 ## 03 · System Transcriber
 
@@ -63,14 +63,14 @@ More: [04-unit-converter/README.md](04-unit-converter/README.md)
 
 ## 05 · Brave New World News Feed
 
-**▶ Open:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/
+**▶ Open:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world-news-feed/
 
 - **Install:** nothing. It runs in any browser.
 - **Use:** pick a language at the top right (Español, English, Português, 中文), pick a section, read the short summary, and click **Ver gráfico y detalles** to open the full story with its chart, sources and verification stamp. Use the search bar to find a topic.
 - **iPhone widget:** paste `widget/BraveNewWorld-widget.js` into the Scriptable app and add a large Scriptable widget.
-- **Offline:** download the repository (see below) and double-click `05-brave-new-world/index.html`.
+- **Offline:** download the repository (see below) and double-click `05-brave-new-world-news-feed/index.html`.
 
-More: [05-brave-new-world/README.md](05-brave-new-world/README.md)
+More: [05-brave-new-world-news-feed/README.md](05-brave-new-world-news-feed/README.md)
 
 ---
 

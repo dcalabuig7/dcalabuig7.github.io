@@ -2,7 +2,7 @@
 
 A narrative science-fiction RPG in which you progress by improving your English (playable build v0.3.0).
 
-**▶ Play in your browser:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/
+**▶ Play in your browser:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-game/
 
 ## How to play
 
