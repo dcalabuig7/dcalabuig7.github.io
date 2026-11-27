@@ -1,4 +1,4 @@
-# Echoes of English
+# Echoes Game
 
 A narrative science-fiction RPG in which you progress by improving your English (playable build v0.3.0).
 

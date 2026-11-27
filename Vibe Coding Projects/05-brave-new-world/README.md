@@ -1,4 +1,4 @@
-# Brave New World
+# Brave New World News Feed
 
 A daily news briefing in Spanish, with a 1984-style look. It covers the UK, Spain and the world in 8 sections, with the 5 most important stories of the day in each. Every story is checked against other sources and gets a stamp that says how solid it is.
 

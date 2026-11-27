@@ -5,10 +5,10 @@ Small projects built with AI-assisted "vibe coding". Each one has its own README
 | # | Project | What it is | Open it |
 |---|---------|------------|---------|
 | 01 | [Click Counter](01-click-counter/) | A counter you can increase, decrease and reset | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/01-click-counter/) |
-| 02 | [Echoes of English](02-echoes-of-english/) | Sci-fi RPG where you progress by improving your English | [▶ Play in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/) |
+| 02 | [Echoes Game](02-echoes-of-english/) | Sci-fi RPG where you progress by improving your English | [▶ Play in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/) |
 | 03 | [System Transcriber](03-system-transcriber/) | Windows app that transcribes PC audio, YouTube links and files | Desktop app, [install below](#03--system-transcriber) |
 | 04 | [Unit Converter](04-unit-converter/) | Converts length, weight and temperature units | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/04-unit-converter/) |
-| 05 | [Brave New World](05-brave-new-world/) | Daily verified news in Spanish, English, Portuguese and Chinese, with an iPhone widget | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) |
+| 05 | [Brave New World News Feed](05-brave-new-world/) | Daily verified news in Spanish, English, Portuguese and Chinese, with an iPhone widget | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) |
 
 ---
 
@@ -22,7 +22,7 @@ Small projects built with AI-assisted "vibe coding". Each one has its own README
 
 More: [01-click-counter/README.md](01-click-counter/README.md)
 
-## 02 · Echoes of English
+## 02 · Echoes Game
 
 **▶ Play:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/
 
@@ -61,7 +61,7 @@ More: [03-system-transcriber/README.md](03-system-transcriber/README.md)
 
 More: [04-unit-converter/README.md](04-unit-converter/README.md)
 
-## 05 · Brave New World
+## 05 · Brave New World News Feed
 
 **▶ Open:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/
 
