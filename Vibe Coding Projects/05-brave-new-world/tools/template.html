@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="__HTMLLANG__">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -49,6 +49,8 @@ button{font:inherit;color:inherit}
 .mast img{width:min(780px,100%);height:auto;display:block}
 .mast .meta{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--steel);border-top:1px solid var(--ink);padding-top:10px}
 .mast .meta b{color:var(--ink);font-weight:600}
+.mast .meta .pick{display:flex;gap:8px;align-items:center}
+.mast .meta .lang select{font:600 12px var(--f-mono);border:1px solid var(--ink);background:var(--sheet);padding:5px 6px;color:var(--ink);cursor:pointer}
 .mast select{font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--paper);border:1px solid var(--ink);border-radius:0;padding:6px 8px;cursor:pointer}
 
 /* Barra de control */
@@ -389,11 +391,11 @@ body.searching .outside{margin-top:14px}
 </div>
 
 <header class="mast"><div class="in">
-  <img src="assets/logo.webp" alt="Brave New World" width="1600" height="533">
+  <img src="__ASSET__assets/logo.webp" alt="Brave New World" width="1600" height="533">
   <div class="meta">
     <span>Registro diario de hechos contrastados</span>
     <span id="fecha"></span>
-    <label><span class="sr">Edición</span><select id="ed" aria-label="Elegir edición"></select></label>
+    <span class="pick"><label><span class="sr">Edición</span><select id="ed" aria-label="Elegir edición"></select></label><label class="lang"><span class="sr">Idioma</span><select id="lang" aria-label="Idioma">__LANGOPTS__</select></label></span>
   </div>
 </div></header>
 
@@ -445,6 +447,8 @@ body.searching .outside{margin-top:14px}
 <script id="seed" type="application/json">__SEED__</script>
 <script>
 const CATS=["Reino Unido","España","Internacional","Economía y mercados","Tecnología","Ciencia y salud","Cultura","Deportes"];
+const CATL=__CATL__; const catL=c=>CATL[c]||c;
+const LOC="__LOC__", USE_DB=__USEDB__;
 const ST=["confirmada","parcial","una_fuente","contradictoria"];
 const STAMP={confirmada:"Verificado",parcial:"Parcial",una_fuente:"Fuente única",contradictoria:"Contradictorio"};
 const STDESC={confirmada:"Dos o más fuentes independientes o la fuente oficial coinciden.",parcial:"El núcleo está confirmado; algún detalle no.",una_fuente:"Solo un medio lo cuenta.",contradictoria:"Las fuentes no coinciden."};
@@ -464,7 +468,7 @@ let openIds=new Set(), readIds=new Set(store.get("bnw-read",[]));
 let blindF=false, follows=store.get("bnw-follow",[]), diet=store.get("bnw-diet",{}), dietSeen=new Set(store.get("bnw-diet-seen",[]));
 const canSpeak=("speechSynthesis" in window);
 
-const fmtDate=(d,o)=>{try{return new Date(d+"T12:00:00Z").toLocaleDateString("es-ES",o||{weekday:"long",day:"numeric",month:"long",year:"numeric"})}catch(e){return d}};
+const fmtDate=(d,o)=>{try{return new Date(d+"T12:00:00Z").toLocaleDateString(LOC,o||{weekday:"long",day:"numeric",month:"long",year:"numeric"})}catch(e){return d}};
 const edNo=d=>{const n=Math.round((Date.parse(d+"T12:00:00Z")-Date.parse("2026-11-06T12:00:00Z"))/864e5)+1;return String(Math.max(1,n)).padStart(3,"0")};
 const leanOf=x=>LEANS.includes(x.lean)?x.lean:"nd";
 const outletOf=x=>x.outlet||x.name;
@@ -488,7 +492,7 @@ let speakingId=null;
 function speak(text,id){
   if(!canSpeak){toast("Tu navegador no permite leer en voz alta");return}
   if(speakingId===id){speechSynthesis.cancel();speakingId=null;render();return}
-  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="es-ES";
+  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang=LOC;
   const v=speechSynthesis.getVoices().find(v=>/^es(-|_)ES/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^es/i.test(v.lang)); if(v)u.voice=v;
   u.onend=u.onerror=()=>{if(speakingId===id){speakingId=null;render()}};
   speakingId=id; speechSynthesis.speak(u); render();
@@ -518,7 +522,7 @@ function render(){
   $("#track").innerHTML=items+items;
   requestAnimationFrame(()=>{const tr=$("#track");const w=tr.scrollWidth/2;if(w>0)tr.style.animationDuration=Math.round(w/45)+"s"});
   // pestañas
-  $("#tabs").innerHTML=["Todas",...CATS].map(c=>`<button aria-pressed="${c===cat}" data-c="${esc(c)}">${esc(c)}<small>${c==="Todas"?all.length:all.filter(s=>s.cat===c).length}</small></button>`).join("");
+  $("#tabs").innerHTML=["Todas",...CATS].map(c=>`<button aria-pressed="${c===cat}" data-c="${esc(c)}">${esc(catL(c))}<small>${c==="Todas"?all.length:all.filter(s=>s.cat===c).length}</small></button>`).join("");
   renderBrief(); renderErrata(); renderMe();
   const nBlind=all.filter(blind).length; $("#blindBtn").textContent="Puntos ciegos ("+nBlind+")"; $("#blindBtn").setAttribute("aria-pressed",blindF);
   // panel
@@ -529,7 +533,7 @@ function render(){
     `<div class="thermo"><h3>Termómetro de fuentes · ${seen.size} medios distintos</h3>${lb.html}<div class="legend">${LEANS.filter(l=>lb.c[l]).map(l=>`<span><i style="background:var(--l-${l})"></i>${esc(LEANL[l])} ${lb.c[l]}</span>`).join("")}</div><p>Pulsa «Fuentes del día» para ver quién es cada medio.</p></div>`;
   // estado del filtro
   const list=all.filter(matches);
-  const f=[]; if(cat!=="Todas")f.push(cat); if(stF)f.push(STAMP[stF]); if(outletF)f.push("medio: "+outletF); if(blindF)f.push("puntos ciegos"); if(query)f.push("«"+query+"»");
+  const f=[]; if(cat!=="Todas")f.push(catL(cat)); if(stF)f.push(STAMP[stF]); if(outletF)f.push("medio: "+outletF); if(blindF)f.push("puntos ciegos"); if(query)f.push("«"+query+"»");
   $("#status").innerHTML=f.length?`Mostrando <b>${list.length}</b> de ${all.length} expedientes · ${esc(f.join(" · "))} · <button id="clear">Quitar filtros</button>`:`<b>${all.length}</b> expedientes en esta edición · ${readIds.size?all.filter(s=>readIds.has(s.id)).length+" leídos":"ninguno leído"}`;
   renderOutside(list);
   const searching=query.length>=2; document.body.classList.toggle("searching",searching);
@@ -538,7 +542,7 @@ function render(){
   // expedientes
   const cats=cat==="Todas"?CATS:[cat];
   const html=cats.map(c=>{const l=list.filter(s=>s.cat===c); if(!l.length) return "";
-    return `<section class="sec"><h2><span class="no">${String(CATS.indexOf(c)+1).padStart(2,"0")}</span>${esc(c)}<small>${l.length===5&&!query&&!stF&&!blindF&&!outletF?"Las 5 del día":l.length+" "+(l.length===1?"expediente":"expedientes")}</small></h2><div class="grid${l.length===5?" g5":""}">${l.map(s=>card(s,all.indexOf(s)+1)).join("")}</div></section>`}).join("");
+    return `<section class="sec"><h2><span class="no">${String(CATS.indexOf(c)+1).padStart(2,"0")}</span>${esc(catL(c))}<small>${l.length===5&&!query&&!stF&&!blindF&&!outletF?"Las 5 del día":l.length+" "+(l.length===1?"expediente":"expedientes")}</small></h2><div class="grid${l.length===5?" g5":""}">${l.map(s=>card(s,all.indexOf(s)+1)).join("")}</div></section>`}).join("");
   $("#main").innerHTML=html||(query.length>=2&&cat==="Todas"&&!stF&&!outletF&&!blindF?"":`<div class="empty">Ningún expediente coincide con los filtros. <button class="btn" id="clear2">Quitar filtros</button></div>`);
   // ediciones
   const dates=Object.keys(editions).sort().reverse();
@@ -554,7 +558,7 @@ function card(s,n){
   const off=(s.official||[]).map(x=>{const u=safeUrl(x.url);return `<li><i style="background:var(--l-oficial)"></i>${u?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(nodash(x.name))}</a>`:`<b>${esc(nodash(x.name))}</b>`}${x.note?`<span class="ab">${esc(nodash(x.note))}</span>`:""}</li>`}).join("");
   const chips=[...new Map(srcs.map(x=>[outletOf(x),x])).values()].map(x=>`<button class="chip" data-pop="${esc(outletOf(x))}" aria-expanded="false"><i style="background:var(--l-${leanOf(x)})"></i>${esc(nodash(outletOf(x)))}</button>`).join("");
   return `<article class="file s-${esc(s.status)}${open?" open":""}${speakingId===s.id?" speaking":""}${readIds.has(s.id)?" read":""}" id="s-${esc(s.id)}">
-    <div class="hd"><span>Exp. ${String(n).padStart(2,"0")} · ${esc(s.cat)}</span><span class="red">${srcs.length} ${srcs.length===1?"fuente":"fuentes"}</span></div>
+    <div class="hd"><span>Exp. ${String(n).padStart(2,"0")} · ${esc(catL(s.cat))}</span><span class="red">${srcs.length} ${srcs.length===1?"fuente":"fuentes"}</span></div>
     <div class="bd">
       <span class="stamp">${esc(STAMP[s.status]||s.status)}</span>
       ${(()=>{const b=blind(s),fw=followedBy(s);return (b||fw.length)?`<div class="flags">${b?`<span class="flag" title="Punto ciego">Punto ciego: ${esc(b)}</span>`:""}${fw.map(w=>`<span class="flag f">Sigues: ${esc(w)}</span>`).join("")}</div>`:""})()}
@@ -597,7 +601,7 @@ function renderDir(){
 }
 
 // ---------- visuales ----------
-const fmtN=n=>Number(n).toLocaleString("es-ES",{maximumFractionDigits:2});
+const fmtN=n=>Number(n).toLocaleString(LOC,{maximumFractionDigits:2});
 function vizBars(v){
   const it=v.items||[]; if(!it.length) return "";
   const allNeg=it.every(x=>+x.value<=0);
@@ -656,6 +660,7 @@ let qT=null;
 $("#q").addEventListener("input",e=>{query=e.target.value.trim();render();
   clearTimeout(qT); if(query.length>=2) qT=setTimeout(()=>{const off=document.querySelector(".tape").offsetHeight+document.querySelector(".ctrl").offsetHeight+8;
     const y=$("#status").getBoundingClientRect().top+scrollY-off; if(Math.abs(scrollY-y)>4) scrollTo({top:y,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})},350)});
+$("#lang").addEventListener("change",e=>{if(e.target.value)location.href=e.target.value});
 $("#ed").addEventListener("change",e=>{current=editions[e.target.value]||current;openIds.clear();outletF=null;render()});
 $("#track").addEventListener("click",e=>{const b=e.target.closest("button[data-go]");if(b)go(b.dataset.go)});
 $("#openDir").addEventListener("click",()=>drawer("dir",true));
@@ -720,7 +725,7 @@ $("#brief").addEventListener("click",e=>{
 function unwrap(r){ if(!r) return null; if(typeof r.data==="function") return r.data(); if(r.data&&typeof r.data==="object") return r.data; return r; }
 function parseEd(raw){ const d=unwrap(raw); if(!d) return null; if(typeof d.json==="string"){try{return JSON.parse(d.json)}catch(e){return null}} return d.stories?d:null; }
 async function loadDb(){
-  if(typeof claude==="undefined"||!claude.use) return;
+  if(!USE_DB||typeof claude==="undefined"||!claude.use) return;
   try{
     const db=await claude.use("db"); if(!db) return;
     let timer; const timeout=new Promise((_,rej)=>{timer=setTimeout(()=>rej(new Error("timeout")),10000)});
@@ -746,7 +751,7 @@ Reglas:
 - Cuando hables de la tendencia de un medio, di de quién es la valoración (AllSides o MBFC) y que esas escalas son estadounidenses.
 - En temas políticos, sé neutral: describe hechos y posiciones, sin opinar.`;
 function ctxFor(s){
-  if(s) return {kind:"Expediente · "+s.cat,title:s.title,data:JSON.stringify({...s,punto_ciego:blind(s)})};
+  if(s) return {kind:"Expediente · "+catL(s.cat),title:s.title,data:JSON.stringify({...s,punto_ciego:blind(s)})};
   const brief=(current?.stories||[]).map(x=>({id:x.id,cat:x.cat,title:x.title,status:x.status,summary:x.summary,facts:x.facts,check:x.check,punto_ciego:blind(x),sources:(x.sources||[]).map(y=>({outlet:outletOf(y),lean:y.lean,rating:y.rating}))}));
   return {kind:"Boletín "+edNo(current.date),title:fmtDate(current.date),data:JSON.stringify({resumen:current.brief||[],noticias:brief})};
 }

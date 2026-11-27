@@ -8,7 +8,7 @@ Small projects built with AI-assisted "vibe coding". Each one has its own README
 | 02 | [Echoes of English](02-echoes-of-english/) | Sci-fi RPG where you progress by improving your English | [▶ Play in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/02-echoes-of-english/) |
 | 03 | [System Transcriber](03-system-transcriber/) | Windows app that transcribes PC audio, YouTube links and files | Desktop app, [install below](#03--system-transcriber) |
 | 04 | [Unit Converter](04-unit-converter/) | Converts length, weight and temperature units | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/04-unit-converter/) |
-| 05 | [Brave New World](05-brave-new-world/) | Daily verified news in Spanish, with an iPhone widget | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) |
+| 05 | [Brave New World](05-brave-new-world/) | Daily verified news in Spanish, English, Portuguese and Chinese, with an iPhone widget | [▶ Open in browser](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) |
 
 ---
 
@@ -66,7 +66,7 @@ More: [04-unit-converter/README.md](04-unit-converter/README.md)
 **▶ Open:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/
 
 - **Install:** nothing. It runs in any browser.
-- **Use:** pick a section, read the short summary, and click **Ver gráfico y detalles** to open the full story with its chart, sources and verification stamp. Use the search bar to find a topic.
+- **Use:** pick a language at the top right (Español, English, Português, 中文), pick a section, read the short summary, and click **Ver gráfico y detalles** to open the full story with its chart, sources and verification stamp. Use the search bar to find a topic.
 - **iPhone widget:** paste `widget/BraveNewWorld-widget.js` into the Scriptable app and add a large Scriptable widget.
 - **Offline:** download the repository (see below) and double-click `05-brave-new-world/index.html`.
 

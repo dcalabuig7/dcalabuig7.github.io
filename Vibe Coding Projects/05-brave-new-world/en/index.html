@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brave New World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: archivo de un régimen burocrático. Cabecera con el logotipo, teletipo, barra de control fija,
+   expedientes en rejilla con sello de verificación y termómetro de fuentes. Un solo tema: papel y tinta. */
+:root{
+  --paper:#f1f1ee; --sheet:#fbfbf9; --ink:#0d0d0d; --steel:#5a5f66; --rule:#cfcfca; --red:#d10f1f;
+  --ok:#1f6b3a; --part:#9c6400; --one:#46566a; --bad:#c8102e;
+  --l-izq:#a4472a; --l-cizq:#d38d68; --l-centro:#9b9b93; --l-cder:#7d9ab8; --l-der:#2f5378; --l-oficial:#0d0d0d; --l-empresa:#6d6d68; --l-nd:#d6d6d1;
+  --f-label:"Oswald","Arial Narrow",Impact,sans-serif;
+  --f-head:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Teletipo */
+.tape{background:var(--ink);color:#f1f1ee;font:500 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:stretch;overflow:hidden;
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+.tape .lbl{background:var(--red);padding:9px 14px;white-space:nowrap;display:flex;align-items:center;gap:8px;font-weight:600}
+.tape .lbl i{width:7px;height:7px;background:#fff;border-radius:50%;display:inline-block;animation:blink 1.4s steps(2) infinite}
+.tape .run{flex:1;overflow:hidden;position:relative}
+.tape .track{display:inline-flex;gap:48px;white-space:nowrap;padding:9px 0 9px 24px;animation:run 90s linear infinite}
+.tape .track button{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit}
+.tape .track button:hover{color:#fff;text-decoration:underline}
+.tape .track span.sep{color:var(--red)}
+.tape:hover .track{animation-play-state:paused}
+@keyframes run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.tape .track{animation:none}.tape .lbl i{animation:none}*{transition:none!important}}
+
+/* Cabecera */
+.mast{background:#fff;border-bottom:1px solid var(--rule)}
+.mast .in{max-width:1240px;margin:0 auto;padding:18px 24px 14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.mast img{width:min(780px,100%);height:auto;display:block}
+.mast .meta{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--steel);border-top:1px solid var(--ink);padding-top:10px}
+.mast .meta b{color:var(--ink);font-weight:600}
+.mast .meta .pick{display:flex;gap:8px;align-items:center}
+.mast .meta .lang select{font:600 12px var(--f-mono);border:1px solid var(--ink);background:var(--sheet);padding:5px 6px;color:var(--ink);cursor:pointer}
+.mast select{font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--paper);border:1px solid var(--ink);border-radius:0;padding:6px 8px;cursor:pointer}
+
+/* Barra de control */
+.ctrl{position:relative;z-index:15;background:var(--paper);border-bottom:2px solid var(--ink)}
+.ctrl .in{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1 1 260px;display:flex;align-items:center;border:1px solid var(--ink);background:#fff}
+.search span{font:600 11px var(--f-mono);padding:0 10px;color:var(--steel);text-transform:uppercase;letter-spacing:.06em;border-right:1px solid var(--rule);align-self:stretch;display:flex;align-items:center}
+.search input{flex:1;border:0;background:transparent;font:15px var(--f-body);padding:9px 10px;min-width:0;color:var(--ink)}
+.search input:focus{outline:none}
+.search:focus-within{box-shadow:0 0 0 2px var(--red)}
+.search kbd{font:500 11px var(--f-mono);border:1px solid var(--rule);padding:2px 6px;margin-right:8px;color:var(--steel)}
+.tabs{display:flex;gap:0;border:1px solid var(--ink);background:#fff;flex-wrap:wrap}
+.tabs button{border:0;border-right:1px solid var(--rule);background:transparent;padding:8px 10px;font:600 12.5px var(--f-label);text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
+.tabs button:last-child{border-right:0}
+.tabs button:hover{background:var(--paper)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.tabs button small{font:500 11px var(--f-mono);opacity:.7;margin-left:4px}
+.btn{border:1px solid var(--ink);background:#fff;padding:8px 12px;font:600 13px var(--f-label);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{background:var(--ink);color:#fff}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.red:hover{background:var(--ink);border-color:var(--ink)}
+
+/* Panel de estado */
+.board{max-width:1240px;margin:0 auto;padding:20px 24px 4px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.6fr);gap:12px}
+.stamp-tile{background:var(--sheet);border:1px solid var(--rule);padding:12px 14px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px;position:relative}
+.stamp-tile[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.stamp-tile .n{font:700 34px/1 var(--f-label);font-variant-numeric:tabular-nums;color:var(--c)}
+.stamp-tile .l{font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.08em;color:var(--steel)}
+.stamp-tile .d{font-size:12.5px;color:var(--steel);line-height:1.35}
+.thermo{background:var(--sheet);border:1px solid var(--rule);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.thermo h3{margin:0;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.08em;color:var(--steel)}
+.bar{display:flex;height:12px;border:1px solid var(--ink);background:#fff}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font:500 11.5px var(--f-mono);color:var(--steel)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.thermo p{margin:0;font-size:12.5px;color:var(--steel)}
+
+.status{max-width:1240px;margin:0 auto;padding:8px 24px 0;font:500 12.5px var(--f-mono);color:var(--steel)}
+.status b{color:var(--ink)}
+.status button{background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;font:inherit;color:var(--red)}
+
+/* Expedientes */
+main{max-width:1240px;margin:0 auto;padding:12px 24px 96px}
+.sec{margin-top:22px}
+.sec > h2{display:flex;align-items:center;gap:12px;margin:0 0 12px;font:700 20px var(--f-label);text-transform:uppercase;letter-spacing:.08em}
+.sec > h2::after{content:"";flex:1;height:2px;background:var(--ink)}
+.sec > h2 small{font:500 12px var(--f-mono);color:var(--steel);letter-spacing:.04em;order:3}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.file{background:var(--sheet);border:1px solid var(--ink);display:flex;flex-direction:column;position:relative}
+.file.read{opacity:.62}
+.file .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--ink);color:#f1f1ee;padding:6px 12px;font:500 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.08em}
+.file .hd .red{color:#ff5a66}
+.file .bd{padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.stamp{align-self:flex-start;transform:rotate(-2.5deg);border:2px solid var(--c);color:var(--c);font:700 13px/1 var(--f-label);letter-spacing:.14em;text-transform:uppercase;padding:6px 10px 5px;background:color-mix(in srgb,var(--c) 7%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent)}
+.s-confirmada{--c:var(--ok)} .s-parcial{--c:var(--part)} .s-una_fuente{--c:var(--one)} .s-contradictoria{--c:var(--bad)}
+.file h3{margin:0;font:700 20px/1.24 var(--f-head);text-wrap:balance}
+.file p.sum{margin:0;font:400 15.5px/1.55 var(--f-head)}
+.mini{display:flex;flex-direction:column;gap:5px}
+.mini .lab{display:flex;justify-content:space-between;font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--steel)}
+.mini .bar{height:9px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#fff;padding:3px 8px 3px 6px;font:500 12px var(--f-body);cursor:pointer}
+.chip i{width:9px;height:9px;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.chip:hover,.chip[aria-expanded="true"]{border-color:var(--ink)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;border-top:1px dashed var(--rule);padding-top:10px;margin-top:auto}
+.acts button{border:1px solid var(--ink);background:transparent;padding:6px 10px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
+.acts button:hover{background:var(--ink);color:#fff}
+.acts button.ask{border-color:var(--red);color:var(--red)}
+.acts button.ask:hover{background:var(--red);color:#fff}
+.open .more{display:flex}
+.more{display:none;flex-direction:column;gap:12px;border-top:1px solid var(--ink);padding-top:12px}
+.more h4{margin:0 0 6px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.1em}
+.facts{margin:0;padding:0;list-style:none;font:500 13.5px/1.5 var(--f-mono);display:flex;flex-direction:column;gap:3px}
+.facts li{padding-left:16px;position:relative}
+.facts li::before{content:"›";position:absolute;left:2px;color:var(--red);font-weight:600}
+.note{font-size:13.5px;color:var(--ink);background:var(--paper);border-left:3px solid var(--c);padding:8px 10px;margin:0}
+.srcs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.srcs li{display:grid;grid-template-columns:10px 1fr;gap:4px 10px;font-size:13.5px}
+.srcs li > i{width:10px;height:10px;margin-top:5px;border:1px solid rgba(0,0,0,.25)}
+.srcs a{font-weight:600;text-decoration:none;border-bottom:1px solid var(--rule)}
+.srcs a:hover{border-color:var(--red);color:var(--red)}
+.srcs .ab{grid-column:2;color:var(--steel);font-size:12.8px;line-height:1.4}
+.srcs .rt{grid-column:2;font:500 11.5px var(--f-mono);color:var(--ink)}
+.pop{position:absolute;z-index:12;max-width:320px;background:var(--ink);color:#f1f1ee;padding:10px 12px;font-size:13px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.pop b{display:block;font:600 13px var(--f-label);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.pop small{display:block;font:500 11.5px var(--f-mono);color:#c9c9c4;margin-top:6px}
+.empty{padding:40px;text-align:center;border:1px dashed var(--steel);font:500 13px var(--f-mono);color:var(--steel)}
+
+/* Paneles laterales */
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);z-index:30;display:none;flex-direction:column;box-shadow:-16px 0 40px rgba(0,0,0,.25)}
+.drawer.open{display:flex}
+.drawer .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid currentColor}
+.drawer .top .k{font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.12em}
+.drawer .top b{display:block;font:600 16px/1.3 var(--f-head);margin-top:4px}
+.drawer .x{border:1px solid currentColor;background:transparent;width:32px;height:32px;font-size:18px;cursor:pointer;flex:none}
+.dir{background:var(--sheet);color:var(--ink)}
+.dir .list{overflow:auto;padding:8px 16px 24px}
+.dir h5{margin:16px 0 6px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px}
+.dir h5 i{width:10px;height:10px;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.dir .o{width:100%;text-align:left;border:1px solid var(--rule);background:#fff;padding:8px 10px;margin-bottom:6px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.dir .o:hover{border-color:var(--ink)}
+.dir .o b{font:600 14px var(--f-body);display:flex;justify-content:space-between;gap:8px}
+.dir .o b small{font:500 11px var(--f-mono);color:var(--steel)}
+.dir .o span{font-size:12.8px;color:var(--steel)}
+.dir .o em{font:500 11.5px var(--f-mono);font-style:normal}
+.dir .intro{font-size:13px;color:var(--steel);padding:12px 16px 0;margin:0}
+.term{background:#0e0f0f;color:#e8e8e2}
+.term .top{border-color:#33352f}
+.term .k{color:#ff5a66}
+.term .warn{font:500 12px var(--f-mono);color:#a9aaa3;padding:10px 16px;border-bottom:1px solid #33352f}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;font:14px/1.55 var(--f-body)}
+.m{max-width:94%;white-space:pre-wrap;padding:9px 12px}
+.m.u{align-self:flex-end;background:#e8e8e2;color:#0e0f0f}
+.m.a{align-self:flex-start;border-left:2px solid #ff5a66;background:#171918}
+.m.a::before{content:"BNW>";display:block;font:600 11px var(--f-mono);color:#ff5a66;margin-bottom:4px;letter-spacing:.08em}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.sugg button{border:1px solid #44473f;background:transparent;color:#e8e8e2;padding:5px 9px;font:500 12.5px var(--f-mono);cursor:pointer}
+.sugg button:hover{border-color:#ff5a66;color:#ff5a66}
+.term form{display:flex;border-top:1px solid #33352f}
+.term input{flex:1;background:transparent;border:0;color:#e8e8e2;font:14px var(--f-mono);padding:14px 16px;min-width:0}
+.term input:focus{outline:none;background:#171918}
+.term form button{border:0;background:var(--red);color:#fff;font:600 13px var(--f-label);text-transform:uppercase;letter-spacing:.1em;padding:0 18px;cursor:pointer}
+.scrim{position:fixed;inset:0;background:rgba(13,13,13,.35);z-index:25;display:none}
+.scrim.on{display:block}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;font:500 13px var(--f-mono);padding:10px 14px;z-index:40;display:none}
+.toast.on{display:block}
+.fab{position:fixed;right:20px;bottom:20px;z-index:20}
+
+footer{max-width:1240px;margin:0 auto;padding:0 24px 48px;font-size:12.8px;color:var(--steel);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;border-top:2px solid var(--ink);padding-top:16px}
+footer h6{margin:0 0 6px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.1em;color:var(--ink)}
+footer p{margin:0}
+
+.tape{position:sticky;top:0;z-index:16}
+.ctrl{position:sticky;top:var(--tapeH,30px)}
+.ctrl.stuck{box-shadow:0 6px 14px -10px rgba(0,0,0,.45)}
+@media (max-width:640px){
+  .ctrl .in{padding-top:8px;padding-bottom:8px;gap:8px}
+  .ctrl.stuck .btn{display:none}
+}
+@media (max-width:980px){
+  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .thermo{grid-column:1 / -1}
+  footer{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .tabs{width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .tabs button{white-space:nowrap}
+  .grid{grid-template-columns:1fr}
+  .mast .in,.ctrl .in,.board,.status,main,footer{padding-left:16px;padding-right:16px}
+  .search kbd{display:none}
+}
+
+/* búsqueda fuera del boletín */
+.outside{max-width:1240px;margin:0 auto 6px;padding:0 24px}
+.outside .box{border:1px solid var(--ink);background:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.outside h3{margin:0;font:600 13px var(--f-label);text-transform:uppercase;letter-spacing:.08em}
+.outside h3 b{color:var(--red)}
+.outside p{margin:0;font-size:13.5px;color:var(--steel)}
+.outside .links{display:flex;flex-wrap:wrap;gap:8px}
+.outside .links a{border:1px solid var(--ink);padding:6px 10px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.06em;color:var(--ink);text-decoration:none;background:var(--paper)}
+.outside .links a:hover{background:var(--ink);color:#fff}
+.outside .askq{align-self:flex-start;background:var(--red);color:#fff;border:0;padding:8px 12px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
+@media (max-width:640px){.outside{padding:0 16px}}
+
+/* v4 */
+.brief{max-width:1240px;margin:0 auto;padding:12px 24px 0}
+.brief .box{background:#fff;border:2px solid var(--ink);display:grid;grid-template-columns:200px 1fr auto;gap:16px;align-items:start;padding:14px 16px}
+.brief h3{margin:0;font:700 18px/1.1 var(--f-label);text-transform:uppercase;letter-spacing:.06em}
+.brief h3 small{display:block;font:500 11px var(--f-mono);color:var(--steel);letter-spacing:.06em;margin-top:6px}
+.brief ol{margin:0;padding-left:20px;font:400 15px/1.5 var(--f-head);display:flex;flex-direction:column;gap:4px}
+.brief ol li::marker{font:600 13px var(--f-mono);color:var(--red)}
+.brief .side{display:flex;flex-direction:column;gap:6px}
+.flag{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;padding:3px 7px;border:1px dashed var(--red);color:var(--red);background:#fff;align-self:flex-start}
+.flag.f{border-style:solid;border-color:var(--ink);color:var(--ink)}
+.flags{display:flex;flex-wrap:wrap;gap:6px}
+.btn[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.errata{max-width:1240px;margin:0 auto 24px;padding:0 24px}
+.errata .box{border:1px solid var(--ink);background:var(--sheet);padding:12px 16px}
+.errata h3{margin:0 0 6px;font:600 13px var(--f-label);text-transform:uppercase;letter-spacing:.1em}
+.errata ul{margin:0;padding-left:18px;font-size:13.5px}
+.errata p{margin:0;font-size:13.5px;color:var(--steel)}
+.me{background:var(--sheet);color:var(--ink)}
+.me .body{overflow:auto;padding:12px 16px 24px;display:flex;flex-direction:column;gap:18px}
+.me h4{margin:0 0 6px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.1em}
+.me p{margin:0;font-size:13.5px;color:var(--steel)}
+.me form{display:flex;border:1px solid var(--ink);background:#fff}
+.me input{flex:1;border:0;padding:9px 10px;font:14px var(--f-body);min-width:0;background:transparent}
+.me input:focus{outline:none}
+.me form button{border:0;border-left:1px solid var(--ink);background:var(--ink);color:#fff;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.08em;padding:0 14px;cursor:pointer}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tags span{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ink);background:#fff;padding:3px 4px 3px 8px;font:500 12.5px var(--f-mono)}
+.tags button{border:0;background:var(--ink);color:#fff;width:20px;height:20px;cursor:pointer;line-height:1}
+.speaking{box-shadow:0 0 0 2px var(--red)}
+@media (max-width:980px){ .brief .box{grid-template-columns:1fr} }
+@media (max-width:640px){ .brief{padding-left:16px;padding-right:16px} .errata{padding-left:16px;padding-right:16px} .fab{right:12px;bottom:12px;padding:8px 10px;font-size:12px} }
+
+/* v5 visuales */
+.ttl{all:unset;cursor:pointer;font:inherit;text-wrap:balance}
+.ttl:hover{text-decoration:underline;text-decoration-color:var(--red);text-underline-offset:4px}
+.ttl:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.peek{align-self:flex-start;border:0;background:none;padding:0;cursor:pointer;font:600 12px var(--f-mono);color:var(--red);text-align:left}
+.peek:hover{text-decoration:underline}
+.hb{display:flex;flex-direction:column;gap:9px;position:relative}
+.hb-row{display:flex;flex-direction:column;gap:3px}
+.hb-l{font:500 12.5px var(--f-body);color:var(--ink)}
+.hb-t{position:relative;height:16px;margin-right:78px}
+.hb-t i{display:block;height:16px;background:var(--ink)}
+.hb-t b{position:absolute;top:0;line-height:16px;font:600 13px/16px var(--f-mono);white-space:nowrap}
+.hb-row.hl .hb-t i{background:var(--red)} .hb-row.hl .hb-t b{color:var(--red)}
+.hb-row.dim .hb-t i{background:repeating-linear-gradient(90deg,#fff 0 6px,var(--l-centro) 6px 9px);outline:1px dashed var(--ink)}
+.hb-row.dim .hb-l::after{content:" · previsión";color:var(--steel);font-family:var(--f-mono);font-size:11px}
+.hb-axis{position:relative;height:16px;margin-right:78px}
+.hb-ref{position:absolute;top:-999px;bottom:0;border-left:2px dashed var(--red);pointer-events:none}
+.hb{overflow:hidden}
+.hb-ref span{position:absolute;bottom:0;left:6px;white-space:nowrap;font:600 11px var(--f-mono);color:var(--red);background:#fff;padding:0 3px}
+.hb-note{font:500 11px var(--f-mono);color:var(--steel)}
+.cmp{display:flex;flex-direction:column;gap:10px}
+.cmp-row{display:flex;flex-direction:column;gap:3px}
+.cmp-bar{display:flex;height:24px;position:relative;border:1px solid var(--ink)}
+.cmp-bar i{display:flex;align-items:center;font:600 12px var(--f-mono);color:#fff;font-style:normal;padding:0 6px;overflow:hidden;white-space:nowrap}
+.cmp-bar i.a{background:var(--l-cizq)} .cmp-bar i.b{background:var(--l-der);justify-content:flex-end}
+.cmp-bar .half{position:absolute;left:50%;top:-4px;bottom:-4px;border-left:2px solid var(--ink)}
+.why{margin:0;font:500 13.5px/1.45 var(--f-body);background:var(--paper);border-left:3px solid var(--red);padding:8px 10px}
+.why b{font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--red);display:block;margin-bottom:2px}
+.viz{border:1px solid var(--ink);background:#fff;padding:10px 12px 8px}
+.viz h5{margin:0 0 8px;font:600 12px var(--f-label);text-transform:uppercase;letter-spacing:.08em}
+.viz .src{font:500 10.5px var(--f-mono);color:var(--steel);margin-top:6px;letter-spacing:.02em}
+.viz svg{display:block;width:100%;height:auto;overflow:visible}
+.viz svg text{font-family:"IBM Plex Mono",monospace}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--ink);display:flex;flex-direction:column;gap:7px}
+.tl li{position:relative;font-size:13.5px;line-height:1.35}
+.tl li::before{content:"";position:absolute;left:-20px;top:4px;width:10px;height:10px;background:#fff;border:2px solid var(--ink)}
+.tl li.hl::before{background:var(--red);border-color:var(--red)}
+.tl li.hl{font-weight:600}
+.tl b{font:600 12px var(--f-mono);display:inline-block;min-width:58px;color:var(--steel)}
+.tl li.hl b{color:var(--red)}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:13.5px;line-height:1.35;align-items:start}
+.steps li span{width:22px;height:22px;background:var(--ink);color:#fff;font:600 12px var(--f-mono);display:flex;align-items:center;justify-content:center}
+.steps li.hl span{background:var(--red)}
+.steps li.dim{color:var(--steel)}
+.steps li.dim span{background:var(--l-centro)}
+.steps em{font:600 11px var(--f-mono);font-style:normal;text-transform:uppercase;letter-spacing:.06em;color:var(--steel);display:block}
+.claims{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.claims li{border:1px solid var(--rule);padding:6px 8px;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:13.5px;line-height:1.35}
+.claims li i{grid-row:span 2;font:700 10px var(--f-label);letter-spacing:.08em;text-transform:uppercase;padding:3px 5px;border:1.5px solid currentColor;align-self:start;transform:rotate(-2deg)}
+.claims li i.una{color:var(--one)} .claims li i.no{color:var(--bad)} .claims li i.si{color:var(--ok)}
+.claims li b{font:600 11.5px var(--f-mono);color:var(--steel)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.stats div{border-top:3px solid var(--ink);padding-top:6px}
+.stats div.dim{border-color:var(--l-centro);color:var(--steel)}
+.stats b{display:block;font:700 22px/1.1 var(--f-label)}
+.stats span{font-size:12.5px;line-height:1.35;display:block;margin-top:2px}
+.terms{margin:0;display:grid;gap:6px}
+.terms dt{font:600 12.5px var(--f-mono)}
+.terms dd{margin:0 0 0 0;font-size:13.5px;color:var(--ink)}
+
+/* barra compacta */
+.ctrl .in{padding-top:6px;padding-bottom:6px;gap:6px 8px}
+.search{flex:1 1 220px}
+.search span{font-size:10px;padding:0 8px}
+.search input{font-size:13.5px;padding:5px 8px}
+.search kbd{font-size:10px;padding:1px 5px}
+.ctrl .btn{padding:5px 10px;font-size:11.5px}
+.tabs{order:5;width:100%}
+.tabs button{padding:5px 9px;font-size:11.5px}
+.tabs button small{font-size:10px;margin-left:3px}
+@media (max-width:640px){
+  .ctrl .in{padding-top:5px;padding-bottom:5px}
+  .ctrl .btn{padding:4px 8px;font-size:11px}
+}
+
+/* rejilla sin huecos y acabado */
+.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.g5 > .file:first-child{grid-column:span 2}
+.g5 > .file:first-child h3{font-size:clamp(24px,2.3vw,30px);line-height:1.15}
+.g5 > .file:first-child p.sum{font-size:17px;line-height:1.55;max-width:62ch}
+.g5 > .file:first-child .hd{background:var(--red)}
+.g5 > .file:first-child .hd .red{color:#fff}
+.g5 > .file:first-child .bd{padding:20px 22px 16px}
+.file{transition:transform .15s ease,box-shadow .15s ease}
+.file:hover{transform:translateY(-2px);box-shadow:6px 6px 0 var(--ink)}
+.file.open{box-shadow:6px 6px 0 var(--red)}
+.sec{margin-top:34px}
+.sec > h2 .no{font:600 13px var(--f-mono);color:#fff;background:var(--ink);padding:3px 7px;letter-spacing:.04em}
+.acts{gap:6px 10px}
+.acts button{border-color:transparent;padding:5px 6px;font-size:11px;color:var(--steel)}
+.acts button:hover{background:transparent;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.acts button[data-act="toggle"]{border:1px solid var(--ink);background:var(--ink);color:#fff;padding:6px 11px}
+.acts button[data-act="toggle"]:hover{background:var(--red);border-color:var(--red);color:#fff;text-decoration:none}
+.acts button.ask{color:var(--red)}
+@media (max-width:999px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:640px){
+  .grid{grid-template-columns:1fr}
+  .g5 > .file:first-child{grid-column:auto}
+  .g5 > .file:first-child .bd{padding:16px}
+  .file:hover{transform:none;box-shadow:none}
+}
+@media (prefers-reduced-motion: reduce){.file{transition:none}.file:hover{transform:none}}
+
+/* búsqueda: resultados primero */
+body.searching #brief, body.searching #board, body.searching #errata{display:none}
+body.searching #main{min-height:0}
+body.searching .outside{margin-top:14px}
+
+/* móvil: letra más grande */
+@media (max-width:640px){
+  body{font-size:16.5px}
+  .file h3,.g5 > .file:first-child h3{font-size:23px;line-height:1.22}
+  .file p.sum,.g5 > .file:first-child p.sum{font-size:17.5px;line-height:1.55}
+  .peek{font-size:13.5px}
+  .mini .lab{font-size:12px}
+  .chip{font-size:13.5px;padding:4px 9px 4px 7px}
+  .acts button{font-size:12.5px}
+  .acts button[data-act="toggle"]{padding:8px 12px}
+  .why{font-size:15.5px}
+  .why b{font-size:12px}
+  .note,.terms dd,.srcs li{font-size:15px}
+  .terms dt{font-size:14px}
+  .facts{font-size:14.5px}
+  .brief ol{font-size:17px}
+  .file .hd{font-size:12px}
+  .stamp{font-size:13px}
+  .search input{font-size:16px}
+  .tabs button{font-size:12.5px;padding:7px 10px}
+  .tape{font-size:13px}
+  .sec > h2{font-size:21px}
+  .outside p{font-size:15px}
+  .outside .links a{font-size:12.5px;padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<div class="tape" aria-label="Headlines in this edition">
+  <div class="lbl"><i></i><span id="tapeLbl">Bulletin</span></div>
+  <div class="run"><div class="track" id="track"></div></div>
+</div>
+
+<header class="mast"><div class="in">
+  <img src="../assets/logo.webp" alt="Brave New World" width="1600" height="533">
+  <div class="meta">
+    <span>Daily record of checked facts</span>
+    <span id="fecha"></span>
+    <span class="pick"><label><span class="sr">Edition</span><select id="ed" aria-label="Choose edition"></select></label><label class="lang"><span class="sr">Language</span><select id="lang" aria-label="Language"><option value="../index.html">Español</option><option value="../en/index.html" selected>English</option><option value="../pt/index.html">Português</option><option value="../zh/index.html">中文</option></select></label></span>
+  </div>
+</div></header>
+
+<div class="ctrl"><div class="in">
+  <label class="search"><span>Search</span><input id="q" type="search" placeholder="Topic, person, outlet or figure" autocomplete="off"><kbd>/</kbd></label>
+  <div class="tabs" id="tabs" role="group" aria-label="Sections"></div>
+  <button class="btn" id="blindBtn" type="button" aria-pressed="false">Blind spots</button>
+  <button class="btn" id="openDir" type="button">Today's sources</button>
+  <button class="btn" id="openMe" type="button">My reading</button>
+</div></div>
+
+<section class="brief" id="brief" aria-label="The day in 60 seconds"></section>
+<section class="board" id="board" aria-label="Verification summary"></section>
+<div class="status" id="status"></div>
+<section class="outside" id="outside" hidden aria-live="polite"></section>
+<main id="main"></main>
+
+<section class="errata" id="errata" aria-label="Corrections"></section>
+<footer>
+  <div><h6>How we verify</h6><p>Each story is checked against independent outlets and, where one exists, the official source. Several outlets agreeing does not make it true: they may be repeating the same agency report.</p></div>
+  <div><h6>Where the leaning comes from</h6><p>The ratings are from AllSides and Media Bias Fact Check, two US organisations. Their left and right scale is designed for the US and does not always fit Spanish or British politics, and they sometimes disagree with each other.</p></div>
+  <div><h6>What is a blind spot</h6><p>A story whose rated sources all sit on the same side, with none in the centre. Unrated sources do not count, so a blind spot does not mean the story is false.</p></div>
+  <div><h6>What it does not do</h6><p>It does not copy articles: the summaries are written here and link to the original. If an official link is missing, the file says so instead of making one up.</p></div>
+</footer>
+
+<button class="btn red fab" id="fab" type="button" hidden>Ask the terminal</button>
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer dir" id="dir" role="dialog" aria-label="Today's sources">
+  <div class="top"><div><span class="k">Source archive</span><b id="dirTitle">Outlets cited today</b></div><button class="x" data-close aria-label="Close">×</button></div>
+  <p class="intro">Tap an outlet to see only the stories it appears in.</p>
+  <div class="list" id="dirList"></div>
+</aside>
+
+<aside class="drawer me" id="me" role="dialog" aria-label="My reading">
+  <div class="top"><div><span class="k">My reading</span><b>Your news diet and the topics you follow</b></div><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="body" id="meBody"></div>
+</aside>
+
+<aside class="drawer term" id="chat" role="dialog" aria-label="Ask the terminal">
+  <div class="top"><div><span class="k" id="chatKind">Ask the terminal</span><b id="chatTitle"></b></div><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="warn">It answers from this edition's sources. It does not browse the internet. Anything it adds on its own is marked as general context.</div>
+  <div class="msgs" id="msgs"></div>
+  <div class="sugg" id="sugg"></div>
+  <form id="form"><input id="ask" placeholder="Type your question" autocomplete="off" aria-label="Question"><button type="submit">Send</button></form>
+</aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script id="seed" type="application/json">{"date": "2026-11-06", "generated": "2026-11-06T16:30:00Z", "note": "Verified by cross-checking independent sources. Each outlet's leaning comes from AllSides or Media Bias Fact Check where one exists; if not, that is stated.", "stories": [{"id": "uk-boe", "cat": "Reino Unido", "title": "Bank of England raises rates to 4%, the first rise in more than three years", "summary": "The Monetary Policy Committee raised Bank Rate by 0.25 points to 4%, in an 8 to 1 vote: Catherine Mann wanted half a point. The bank expects inflation, 3.5% in September, to be around 5% by mid 2027. The pound weakened despite the rise.", "status": "confirmada", "check": "The Bank of England's official statement confirms the decision, the vote and the forecasts. CaixaBank Research, CPA and Tickmill report the rise separately.", "facts": ["Bank Rate: 4% (previously 3.75%)", "8 to 1 vote; Mann voted to raise to 4.25%", "CPI Sept 2026: 3.5%", "Bank forecast: CPI ~4.5% in Q1 2027 and ~5% in Q2 2027", "According to CPA, the bank raises its GDP forecast to 1.6% in 2026 and 1.3% in 2027 (figure not checked in the statement)"], "sources": [{"name": "Bank of England (official)", "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/november-2026", "outlet": "Bank of England", "lean": "oficial", "about": "The UK's central bank. It is the primary official source for the rate decision.", "rating": ""}, {"name": "CaixaBank Research", "url": "https://www.caixabankresearch.com/en/publications/financial-markets-daily-report/06-november-2026", "outlet": "CaixaBank Research", "lean": "empresa", "about": "Economic research service of the Spanish bank CaixaBank. It is market analysis, not journalism.", "rating": ""}, {"name": "CPA (UK Business News)", "url": "https://cpa.co.uk/uk-business-news-today-6-november-2026-economy-markets-insolvencies/", "outlet": "CPA", "lean": "empresa", "about": "Blog of a British company aimed at small firms that sell on credit, according to its own text. It is not a news outlet.", "rating": ""}, {"name": "Tickmill", "url": "https://www.tickmill.com/blog/daily-market-outlook-november-6-2026", "outlet": "Tickmill", "lean": "empresa", "about": "Currency and CFD broker. Its market notes have a commercial purpose.", "rating": ""}], "official": [{"name": "Monetary Policy Summary, November 2026: Bank of England", "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/november-2026", "note": "Decision, vote and inflation forecasts"}], "why": "It makes variable mortgages and loans in the UK more expensive and slightly improves returns on savings. The bank is raising rates to curb inflation that it expects to keep rising.", "terms": [{"t": "Bank Rate", "d": "The Bank of England's official interest rate. It sets how much borrowing costs in the country."}, {"t": "CPI", "d": "Consumer price index: measures how much prices rise. The bank's target is 2%."}], "visual": {"type": "bars", "title": "UK inflation: latest figure and the bank's forecast", "unit": "%", "ref": {"value": 2, "label": "2% target"}, "items": [{"label": "Sept 2026 (figure)", "value": 3.5}, {"label": "Q1 2027 (forecast)", "value": 4.5, "dim": true}, {"label": "Q2 2027 (forecast)", "value": 5, "dim": true}], "source": "Bank of England, November 2026"}}, {"id": "uk-pmi", "cat": "Reino Unido", "title": "UK construction contracts sharply in October", "summary": "S&P Global's construction PMI fell to 43.6 from 46.1 in September. Any value below 50 means contraction.", "status": "una_fuente", "check": "I have only found it in CPA's summary. I could not open S&P Global's original release.", "facts": ["Construction PMI Oct 2026: 43.6", "Sept 2026: 46.1", "Below 50 = contraction"], "sources": [{"name": "CPA (UK Business News)", "url": "https://cpa.co.uk/uk-business-news-today-6-november-2026-economy-markets-insolvencies/", "outlet": "CPA", "lean": "empresa", "about": "Blog of a British company aimed at small firms that sell on credit, according to its own text. It is not a news outlet.", "rating": ""}], "official": [], "why": "The PMI is a quick thermometer of activity. Below 50 means the sector is shrinking, and in October it fell even further.", "terms": [{"t": "PMI", "d": "Index based on surveys of purchasing managers. 50 is the line: above it activity grows, below it activity shrinks."}], "visual": {"type": "bars", "title": "UK construction PMI", "unit": "", "ref": {"value": 50, "label": "50: the line between growth and contraction"}, "min": 40, "items": [{"label": "September", "value": 46.1}, {"label": "October", "value": 43.6, "hl": true}], "source": "CPA, citing S&P Global (single source)"}}, {"id": "uk-salarios", "cat": "Reino Unido", "title": "Burnham announces that employers will have to publish salaries in job adverts", "summary": "According to The Guardian's headline, prime minister Andy Burnham announced that his government will make it a legal requirement to state the salary when advertising a job. The government had already opened a public consultation on this measure in July.", "why": "If passed, anyone looking for work in the UK will know the pay before applying. Supporters say it narrows pay gaps; some employers fear it will expose differences within their current staff.", "terms": [{"t": "Public consultation", "d": "A step before a law in which the government publishes the proposal and gathers opinions."}, {"t": "Pay transparency", "d": "A duty to state how much a job pays."}], "visual": {"type": "steps", "title": "From consultation to law", "items": [{"label": "July 2026", "text": "The government opens a consultation on publishing pay in job adverts (Lewis Silkin, The HR Director)"}, {"label": "Today", "text": "Burnham announces the legal requirement (Guardian headline)", "hl": true}, {"label": "After", "text": "It would have to be passed into law; no date has been published", "dim": true}], "source": "Lewis Silkin, The HR Director and a Guardian headline"}, "status": "parcial", "check": "The July consultation is confirmed by two specialist sources. I have only seen today's announcement as a Guardian headline picked up by an aggregator; I have not read the details or the timetable.", "facts": ["Announcement attributed to Andy Burnham, prime minister since July 2026", "The July consultation proposed publishing pay and conditions, or giving them in writing before the interview if there is no advert", "No dates for entry into force are known"], "sources": [{"name": "Guardian headline (via aggregator)", "url": "https://www.unitedkingdom.online-listing.com/news/blogger/2026/11/06/burnham-to-force-employers-to-publish-salaries-on-job-ads-in-latest-government-small-fix-uk-politics-live/uk/services/", "outlet": "The Guardian (via aggregator)", "lean": "cizq", "about": "British newspaper. Only the headline, picked up by a web aggregator, has been seen here, not the article on the paper's website.", "rating": "AllSides: centre left"}, {"name": "The HR Director", "url": "https://www.thehrdirector.com/?p=159433", "outlet": "The HR Director", "lean": "nd", "about": "British magazine specialising in human resources.", "rating": ""}, {"name": "Lewis Silkin (July 2026)", "url": "https://www.lewissilkin.com/insights/2026/07/16/uk-pay-transparency-in-recruitment-pay-ranges-in-job-adverts-are-under-consultation", "outlet": "Lewis Silkin", "lean": "empresa", "about": "British law firm specialising in employment law. This is legal analysis, not journalism.", "rating": ""}], "official": []}, {"id": "uk-metro", "cat": "Reino Unido", "title": "London Underground driver strikes in the weeks before Christmas", "summary": "A Guardian headline today warns that commuters and shoppers will face disruption from London Underground driver strikes before Christmas. I have not been able to confirm dates, lines or the union.", "why": "The Tube is London's main form of transport and December is the busiest shopping season. If confirmed, it will affect millions of journeys.", "terms": [{"t": "Tube", "d": "Popular name for the London Underground, run by Transport for London (TfL)."}], "visual": {"type": "claims", "title": "What we know and what is missing", "items": [{"who": "The Guardian (headline)", "says": "There will be Tube driver strikes before Christmas.", "ok": "una"}, {"who": "No source", "says": "Dates, affected lines and the union calling it.", "ok": "no"}], "source": "Guardian headline via aggregator"}, "status": "una_fuente", "check": "Headline only. Searches mostly return strikes from previous years (2021), which are no use for today. Before travelling, check the TfL website.", "facts": ["Headline from 6 November 2026", "Details unconfirmed"], "sources": [{"name": "Guardian headline (via aggregator)", "url": "https://www.unitedkingdom.online-listing.com/news/blogger/2026/11/06/burnham-to-force-employers-to-publish-salaries-on-job-ads-in-latest-government-small-fix-uk-politics-live/uk/services/", "outlet": "The Guardian (via aggregator)", "lean": "cizq", "about": "British newspaper. Only the headline, picked up by a web aggregator, has been seen here, not the article on the paper's website.", "rating": "AllSides: centre left"}], "official": [{"name": "Transport for London: service status", "url": "https://tfl.gov.uk/tube-dlr-overground/status/", "note": "Official website to check disruption."}]}, {"id": "uk-arboles", "cat": "Reino Unido", "title": "British trees bud in autumn as if it were spring", "summary": "The Guardian reports today that UK trees are having a spring six months early. I have not read the article or found a second source.", "why": "Trees putting out leaves or flowers out of season can weaken them before winter. Scientists often link this kind of disruption to unusual temperatures, but I do not know the explanation the article gives.", "terms": [{"t": "Phenology", "d": "The science of when life cycles happen, such as flowering."}], "visual": {"type": "claims", "title": "What we know", "items": [{"who": "The Guardian (headline)", "says": "UK trees are having a spring six months early.", "ok": "una"}, {"who": "No source", "says": "Which species, where and why.", "ok": "no"}], "source": "Guardian headline via aggregator"}, "status": "una_fuente", "check": "Headline only. The link to climate is general context, not something from the article.", "facts": ["Headline from 6 November 2026"], "sources": [{"name": "Guardian headline (via aggregator)", "url": "https://www.unitedkingdom.online-listing.com/news/blogger/2026/11/06/burnham-to-force-employers-to-publish-salaries-on-job-ads-in-latest-government-small-fix-uk-politics-live/uk/services/", "outlet": "The Guardian (via aggregator)", "lean": "cizq", "about": "British newspaper. Only the headline, picked up by a web aggregator, has been seen here, not the article on the paper's website.", "rating": "AllSides: centre left"}], "official": []}, {"id": "es-29n", "cat": "España", "title": "Last pre-campaign weekend before the 29 November general election", "summary": "After the Ibero-American Summit, Sánchez campaigns today in València, Abascal travels to Granada and Feijóo prepares his first rallies since the Urda crash. The official campaign starts on 13 November and runs until the 27th; voting is on Sunday the 29th.", "status": "confirmada", "check": "The election timetable matches in El Español and Uno TV (with AFP). Each leader's agenda for today comes only from EFE.", "facts": ["Voting: Sunday 29 Nov 2026, 9:00 to 20:00 (one hour earlier in the Canary Islands)", "Campaign: 13 to 27 Nov", "Publishing polls banned: 24 to 28 Nov", "Election called in the BOE on 6 Oct 2026 (according to El Español)", "350 MPs and 208 senators are elected (according to El Español)"], "sources": [{"name": "EFE (via Infobae): topics of the day", "url": "https://www.infobae.com/espana/agencias/2026/11/05/temas-del-dia-de-efe-espana-del-viernes-6-de-noviembre-de-2026/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}, {"name": "El Español: timetable", "url": "https://www.elespanol.com/espana/20261005/llega-calendario-elecciones-generales-cierran-listas-electorales/1003744408570_0.html", "outlet": "El Español", "lean": "cder", "about": "Spanish digital newspaper founded in 2015 by Pedro J. Ramírez.", "rating": "MBFC: centre right"}, {"name": "Uno TV / AFP", "url": "https://www.unotv.com/internacional/elecciones-en-espana-2026-fechas-proceso-partidos-y-candidatos/", "outlet": "Uno TV", "lean": "nd", "about": "Mexican digital outlet. Here it reproduces AFP reporting.", "rating": ""}, {"name": "El Español: 29 November election", "url": "https://www.elespanol.com/elecciones/generales/", "outlet": "El Español", "lean": "cder", "about": "Spanish digital newspaper founded in 2015 by Pedro J. Ramírez.", "rating": "MBFC: centre right"}], "official": [{"name": "BOE (official gazette), 6 October 2026 (election call)", "url": "", "note": "I do not have a verified link to the decree; search boe.es for that date"}], "why": "The general election is three weeks away. What happens in these days (Koldo case, rail strikes, Urda crash) goes straight into the campaign.", "terms": [{"t": "Day of reflection", "d": "The day before the vote, when campaigning is not allowed."}], "visual": {"type": "timeline", "title": "Timetable for the 29 November election", "items": [{"date": "6 Nov", "label": "Today: pre-campaign", "hl": true}, {"date": "13 Nov", "label": "Official campaign begins"}, {"date": "24 Nov", "label": "Publishing polls banned"}, {"date": "27 Nov", "label": "Campaign ends"}, {"date": "28 Nov", "label": "Day of reflection"}, {"date": "29 Nov", "label": "Voting, 9:00 to 20:00"}], "source": "El Español and Uno TV (AFP)"}}, {"id": "es-koldo", "cat": "España", "title": "Koldo case: Civil Guard still investigating possible rigged Adif contracts", "summary": "According to EFE, the Civil Guard is continuing its inquiries after Thursday's operation in a new separate strand of the Koldo case, opened by the National Court. It included a search of former minister José Luis Ábalos's home and a request for information from Adif. Euronews also reports that the European Public Prosecutor's Office has opened a fraud investigation into Spanish high-speed rail funds.", "status": "una_fuente", "check": "I have only found Thursday's operation in EFE reports. The other search results were records from 2025. The European Public Prosecutor's investigation appears only as a Euronews headline, with no text to confirm.", "facts": ["New separate strand of the Koldo case at the National Court", "Search of Ábalos's home and request for information from Adif (according to EFE)", "Euronews: the European Public Prosecutor's Office opens a fraud investigation into high-speed rail funds (headline only)"], "sources": [{"name": "EFE (via Infobae): today's news", "url": "https://www.infobae.com/espana/agencias/2026/11/05/hoy-sera-noticia-viernes-6-de-noviembre/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}, {"name": "EFE (via Infobae): topics of the day", "url": "https://www.infobae.com/espana/agencias/2026/11/05/temas-del-dia-de-efe-espana-del-viernes-6-de-noviembre-de-2026/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}, {"name": "Euronews: bulletin (European Public Prosecutor headline)", "url": "https://www.euronews.com/video/2026/11/06/latest-news-bulletin-november-6th-2026-midday", "outlet": "Euronews", "lean": "cizq", "about": "Pan-European channel and website based in France. It has received EU funding, according to MBFC.", "rating": "MBFC: centre left, mostly reliable. AllSides: centre (low confidence)"}], "official": [], "why": "It is a judicial investigation into possible kickbacks for Transport Ministry contracts, and it involves a former minister a few weeks before the election.", "terms": [{"t": "Separate strand", "d": "A part of a judicial investigation handled separately to look into a specific matter."}, {"t": "Adif", "d": "The state company that runs Spain's rail tracks and stations."}], "visual": {"type": "claims", "title": "What we know and who says it", "items": [{"who": "EFE", "says": "On Thursday the Civil Guard carried out an operation in a new separate strand of the Koldo case.", "ok": "una"}, {"who": "EFE", "says": "It searched former minister Ábalos's home and asked Adif for information.", "ok": "una"}, {"who": "Euronews (headline only)", "says": "The European Public Prosecutor's Office is investigating possible fraud with high-speed rail funds.", "ok": "una"}], "source": "I have not found a second independent source"}}, {"id": "es-semaf", "cat": "España", "title": "Transport Ministry and train drivers negotiate again to avoid the 10 and 12 November strikes", "summary": "The Semaf union and the Transport Ministry meet again today. Semaf maintains a full Renfe strike on Tuesday 10th and partial stoppages on Thursday 12th, and CCOO has extended its 24-hour strike to Iryo and Ouigo. All this follows the crash of two high-speed trains at Urda (Toledo) on 28 October, in which 69 people died.", "status": "confirmada", "check": "The dates and type of strike match in Euronews, Diari de Tarragona, Diario del Sur and Demócrata (citing Europa Press). The 69 deaths figure appears in Euronews and Xataka. Today's meeting is reported only by EFE.", "facts": ["10 Nov: full Renfe strike, 00:01 to 23:59", "12 Nov: partial stoppages 6:20 to 9:20, 14:20 to 17:20 and 21:20 to 23:20 (according to Diario del Sur)", "Urda crash: 28 Oct 2026, 69 dead (Euronews, Xataka)", "Adif works committee calls another strike on 17 Nov (Demócrata/EFE)"], "sources": [{"name": "Euronews (Spanish)", "url": "https://es.euronews.com/2026/10/30/huelga-maquinistas-espana-provoca-cancelaciones-renfe-ouigo", "outlet": "Euronews", "lean": "cizq", "about": "Pan-European channel and website based in France. It has received EU funding, according to MBFC.", "rating": "MBFC: centre left, mostly reliable. AllSides: centre (low confidence)"}, {"name": "Diari de Tarragona", "url": "https://www.diaridetarragona.com/catalunya/274399/semaf-convoca-huelga-renfe-dias-10-12-noviembre_amp.html", "outlet": "Diari de Tarragona", "lean": "nd", "about": "Catalan regional newspaper.", "rating": ""}, {"name": "Diario del Sur", "url": "https://www.diariodelsur.com.co/noticias/los-maquinistas-de-renfe-convocan-dos-nuevas-huelgas-para-exigir-mas-seguridad-ferroviaria", "outlet": "Diario del Sur", "lean": "nd", "about": "Colombian regional newspaper.", "rating": ""}, {"name": "Democrat", "url": "https://www.democrata.es/actualidad/huelga-adif-17-noviembre/", "outlet": "Democrat", "lean": "nd", "about": "Spanish digital outlet specialising in politics and institutions.", "rating": ""}, {"name": "Xataka", "url": "https://www.xataka.com/movilidad/huelga-maquinistas-paraliza-renfe-madrid-lineas-cerradas-servicios-minimos-duda?render=menu", "outlet": "Xataka", "lean": "nd", "about": "Spanish technology website.", "rating": ""}, {"name": "EFE (via Infobae)", "url": "https://www.infobae.com/espana/agencias/2026/11/05/hoy-sera-noticia-viernes-6-de-noviembre/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}], "official": [{"name": "Minimum services", "url": "", "note": "Renfe and the Transport Ministry will publish them; I do not have a verified link"}], "why": "If there is no deal, Renfe trains stop on Tuesday 10th and there will be partial stoppages on Thursday 12th. Drivers want more safety after the Urda crash.", "terms": [{"t": "Semaf", "d": "Spain's largest train drivers' union."}, {"t": "Minimum services", "d": "Trains that must run even during a strike. The Ministry sets them."}], "visual": {"type": "timeline", "title": "What happened and what comes next", "items": [{"date": "28 Oct", "label": "Two trains collide in Urda (Toledo): 69 dead"}, {"date": "6 Nov", "label": "Today: another meeting with the Transport Ministry", "hl": true}, {"date": "10 Nov", "label": "Full-day Renfe strike"}, {"date": "12 Nov", "label": "Partial stoppages in three slots"}, {"date": "17 Nov", "label": "Strike called at Adif"}], "source": "Euronews, Diario del Sur, Demócrata and EFE"}}, {"id": "es-aceite", "cat": "España", "title": "Olive oil: record harvest expected and possible compulsory withdrawal of about 12%", "summary": "Spain expects a historic olive oil harvest, with 23% more production, which would push prices down. A headline in Público says the government \"decrees\" withdrawing 12% of the oil. What is documented is that the rule lets the Ministry of Agriculture set the percentage by resolution before 15 November, and that its figures put the calculation at around 12%.", "status": "parcial", "check": "The 12% figure matches Wikifarmer's calculation using Ministry data. The CNMC report confirms the mechanism and the deadline. I have not found the official resolution that decrees it.", "facts": ["Estimated production 2026/27: 1,602,596 t (Ministry of Agriculture, according to Wikifarmer)", "Opening stocks plus production: 1,959,500 t", "Estimated withdrawal: about 189,000 t (~12%); the ceiling is 20%", "Deadline for the Ministry to set the percentage: 15 Nov 2026 (CNMC)"], "sources": [{"name": "Público (headline via Headtopics)", "url": "https://es.headtopics.com/news/efemerides-de-hoy-6-de-noviembre-de-2026-que-pas-el-6-de-89609977", "outlet": "Público", "lean": "cizq", "about": "Spanish digital newspaper founded in 2007. Only the headline, via an aggregator, has been seen here.", "rating": "MBFC: centre left, high reliability"}, {"name": "Infobae / EFE (harvest +23%)", "url": "https://www.infobae.com/espana/agencias/2026/11/05/hoy-sera-noticia-viernes-6-de-noviembre/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}, {"name": "Wikifarmer", "url": "https://wikifarmer.com/library/es/article/espana-umbral-retirada-aceite-oliva-2026", "outlet": "Wikifarmer", "lean": "nd", "about": "Agricultural information platform. The 12% calculation is its own, made with Ministry data.", "rating": ""}], "official": [{"name": "CNMC: report on the olive oil marketing rule 2026/27", "url": "https://www.cnmc.es/sites/default/files/6792097.pdf", "note": "Withdrawal mechanism and deadline"}], "why": "With a very large harvest, farm-gate prices can fall. Compulsory withdrawal takes oil off the market to support that price, although it can affect what consumers pay.", "terms": [{"t": "Compulsory withdrawal", "d": "Mills must keep part of their oil off the market until the next season."}, {"t": "Olive mill", "d": "The mill where the oil is made."}], "visual": {"type": "bars", "title": "Olive oil 2026/27, thousand tonnes", "unit": " mil t", "items": [{"label": "Stocks + production", "value": 1959.5}, {"label": "Estimated production", "value": 1602.6}, {"label": "Estimated withdrawal (~12%)", "value": 189, "hl": true}], "source": "Wikifarmer estimate using Ministry of Agriculture data"}}, {"id": "es-nucleo", "cat": "España", "title": "Police arrest 12 members of Núcleo Nacional in seven provinces", "summary": "On Friday the National Police arrested 12 members of the far-right group Núcleo Nacional in Madrid, Guadalajara, Burgos, Alicante, Asturias, Pontevedra and Valladolid, and searched its Madrid headquarters. The operation is still open and the court leading it, in Gijón, is keeping it secret.", "why": "It is the biggest operation against this group, which had already been investigated for hate crimes and public disorder and took part in the 2023 Ferraz protests. It comes three weeks before the general election.", "terms": [{"t": "Court secrecy", "d": "The judge keeps the investigation hidden from the parties and the public while it lasts."}, {"t": "Criminal organisation", "d": "The crime of belonging to a group set up to commit crimes."}, {"t": "General Information Commissariat (police intelligence)", "d": "National Police unit that investigates terrorism and extremism."}], "visual": {"type": "stat", "title": "The operation in numbers", "items": [{"value": "12", "label": "arrested"}, {"value": "7", "label": "provinces"}, {"value": "1", "label": "court in charge, in Gijón, under secrecy"}], "source": "EFE, CMM and Europa Press (via The Objective)"}, "status": "confirmada", "check": "EFE, CMM, Qué!, Moncloa.com and The Objective (citing Europa Press) agree on the 12 arrests, the seven provinces and the search of the headquarters. The crimes under investigation (hate crimes and criminal organisation) come from police sources quoted by Europa Press. The arrest of one of the founders is reported by El Norte de Castilla and I have not checked it.", "facts": ["Arrests at around 6:00 on Friday", "Provinces: Madrid, Guadalajara, Burgos, Alicante, Asturias, Pontevedra and Valladolid", "Headquarters searched in Las Tablas (Madrid)", "Núcleo Nacional has been on the National Register of Associations since August 2024, according to Qué!"], "sources": [{"name": "EFE news agency (via Infobae)", "url": "https://www.infobae.com/espana/agencias/2026/11/06/la-policia-nacional-detiene-a-12-miembros-de-nucleo-nacional-en-siete-provincias/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State). Infobae republishes its report.", "rating": "MBFC: least biased, high reliability"}, {"name": "CMM", "url": "https://www.cmmedia.es/noticias/castilla-la-mancha/detenidos-12-miembros-de-nucleo-nacional-en-siete-provincias.html", "outlet": "CMM", "lean": "nd", "about": "Public broadcaster of Castilla-La Mancha. Here it uses the EFE report.", "rating": ""}, {"name": "The Objective", "url": "https://theobjective.com/espana/politica/2026-11-06/policia-nucleo-nacional-miembros/", "outlet": "The Objective", "lean": "nd", "about": "Spanish digital newspaper. Here it cites police sources consulted by Europa Press.", "rating": ""}, {"name": "Qué!", "url": "https://www.que.es/2026/11/06/policia-sede-nucleo-nacional/", "outlet": "Qué!", "lean": "nd", "about": "Spanish digital newspaper. It says it was at the headquarters during the search.", "rating": ""}, {"name": "Moncloa.com", "url": "https://www.moncloa.com/2026/11/06/nucleo-nacional-detenciones-3462732", "outlet": "Moncloa.com", "lean": "nd", "about": "Private digital outlet. It is not the government's official website, despite the name.", "rating": ""}], "official": []}, {"id": "int-midterms", "cat": "Internacional", "title": "US: Democrats will control the House and Senate after the midterm elections", "summary": "AP called the Senate for the Democrats on Tuesday night and the House of Representatives early on Wednesday. They control the whole of Congress again for the first time since 2023. Some counts are still open, so the final size of the majorities is not settled.", "status": "confirmada", "check": "AP (via PBS), NPR, Time and CNN agree on control of both chambers. Seat counts vary by outlet and by the stage of the count.", "facts": ["Senate and House: Democratic control (AP projections)", "CNN projects more than 250 House seats and 54 in the Senate, with races still undecided", "The new Congress takes office on 3 January 2027 (Mappr)"], "sources": [{"name": "PBS / AP: Senate", "url": "https://www.pbs.org/newshour/politics/democrats-take-control-of-the-senate-after-winning-key-midterm-races", "outlet": "AP (via PBS)", "lean": "centro", "about": "US news agency, published here by the public broadcaster PBS. AP is the one that calls US elections.", "rating": "AllSides: centre for AP, with surveys that sometimes placed it centre left"}, {"name": "PBS / AP: House", "url": "https://www.pbs.org/newshour/politics/democrats-win-control-of-the-u-s-house", "outlet": "AP (via PBS)", "lean": "centro", "about": "US news agency, published here by the public broadcaster PBS. AP is the one that calls US elections.", "rating": "AllSides: centre for AP, with surveys that sometimes placed it centre left"}, {"name": "NPR", "url": "https://www.npr.org/2026/11/03/g-s1-149526/2026-midterms-congress-balance-of-power", "outlet": "NPR", "lean": "cizq", "about": "US non-profit public radio.", "rating": "AllSides: between centre and centre left depending on the survey"}, {"name": "Time", "url": "https://time.com/article/2026/11/04/democrats-win-control-of-senate-in-blue-wave-election/", "outlet": "Time", "lean": "cizq", "about": "US current affairs magazine.", "rating": "AllSides: centre left (2023 survey)"}, {"name": "CNN", "url": "https://edition.cnn.com/2026/11/05/politics/live-news/midterm-election-congress", "outlet": "CNN", "lean": "cizq", "about": "US news network.", "rating": "AllSides: centre left (website)"}], "official": [{"name": "Certified results", "url": "", "note": "They are certified by each state's election authorities; I do not have verified links"}], "why": "With both chambers in Democratic hands, Trump will need deals to pass laws and appointments in his remaining two years.", "terms": [{"t": "Midterms", "d": "Midterm elections: the whole House of Representatives and a third of the Senate are elected."}], "visual": {"type": "compare", "title": "Senate: before and after", "items": [{"label": "Before", "a": 47, "b": 53, "aL": "Democrats", "bL": "Republicans"}, {"label": "Now (CNN projection)", "a": 54, "b": 46, "aL": "Democrats", "bL": "Republicans and undecided", "note": "Some seats are still undecided"}], "source": "NPR and Mappr (before), CNN (projection, not final)"}}, {"id": "int-iran", "cat": "Internacional", "title": "Hormuz: Iran says it shot down two US drones", "summary": "Iran's Revolutionary Guard says it shot down two US MQM-170 reconnaissance drones over Qeshm island, according to the state agency IRNA. Trump, for his part, warned that Iran could suffer more destruction. On Monday Tehran said the Strait of Hormuz remains closed.", "status": "una_fuente", "check": "The shootdown is a claim by Iranian state media reported by Anadolu; I have not seen the US confirm it. The closure of the strait is reported by the Oman Observer, quoting the Iranian spokesperson.", "facts": ["Revolutionary Guard claim: 2 MQM-170 drones over Qeshm (IRNA, via Anadolu)", "Iran's Foreign Ministry (2 Nov): the Strait of Hormuz remains closed (Oman Observer)", "WHO (via Anadolu): 1,771 dead in Yemen since August"], "sources": [{"name": "Anadolu: Morning Briefing", "url": "https://www.aa.com.tr/en/world/morning-briefing-nov-6-2026/4113576", "outlet": "Anadolu", "lean": "der", "about": "Turkish state news agency. On Middle East topics it is worth cross-checking.", "rating": "MBFC: right, mixed reliability, pro-government. AllSides: centre (initial 2026 review)"}, {"name": "Oman Observer", "url": "https://www.omanobserver.om/article/1193538/world/region/us-not-involved-in-hormuz-talks-with-oman-iran", "outlet": "Oman Observer", "lean": "nd", "about": "Omani English-language newspaper. Here it quotes the Iranian government spokesperson.", "rating": ""}], "official": [], "why": "The Strait of Hormuz is a key route for the world's oil. Any clash there moves the price of crude and, with it, petrol prices and inflation.", "terms": [{"t": "Strait of Hormuz", "d": "Sea passage between Iran and Oman through which a very large share of the world's oil travels."}, {"t": "IRGC", "d": "Iran's Revolutionary Guard, the regime's elite military force."}], "visual": {"type": "claims", "title": "Who says what", "items": [{"who": "Revolutionary Guard (via IRNA and Anadolu)", "says": "Shot down two US drones over Qeshm island.", "ok": "una"}, {"who": "US", "says": "I have found neither confirmation nor denial.", "ok": "no"}, {"who": "Iran's Foreign Ministry (via Oman Observer)", "says": "The strait remains closed.", "ok": "una"}], "source": "Anadolu and Oman Observer"}}, {"id": "int-papa", "cat": "Internacional", "title": "Leo XIV begins a Latin America tour in Uruguay", "summary": "The Pope begins a pastoral tour of about twelve days that will also take him to Argentina and Peru and will end on 16 November. It comes three weeks after a lung operation.", "status": "confirmada", "check": "EFE and the Religion Media Centre (UK) report it separately. The lung operation is mentioned only by the Religion Media Centre.", "facts": ["Stops: Uruguay (until Sunday), Argentina and Peru", "End of the tour: 16 Nov", "Lung operation three weeks earlier (Religion Media Centre)"], "sources": [{"name": "EFE (via Infobae)", "url": "https://infobae.com/america/agencias/2026/11/06/viernes-6-de-noviembre-de-2026-0800-gmt", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}, {"name": "Religion Media Centre", "url": "https://religionmediacentre.org.uk/morning-news-bulletin/religion-news-6-november-2026", "outlet": "Religion Media Centre", "lean": "nd", "about": "British organisation that reports on religion.", "rating": ""}], "official": [], "why": "It is the Pope's first major trip to Latin America since his lung operation.", "terms": [], "visual": {"type": "timeline", "title": "The tour", "items": [{"date": "6 Nov", "label": "Arrives in Uruguay", "hl": true}, {"date": "After", "label": "Argentina"}, {"date": "After", "label": "Peru"}, {"date": "16 Nov", "label": "End of the tour"}], "source": "EFE and Religion Media Centre"}}, {"id": "int-paraguay", "cat": "Internacional", "title": "Paraguay in crisis over the fall of Ueno Bank; Anadolu says Peña has resigned", "summary": "Paraguay's central bank took over Ueno Bank on Tuesday, the country's biggest digital bank, because its solvency fell below half the legal minimum. About 3 million customers have lost normal access to their money and the central bank governor has resigned. Turkey's Anadolu agency claims today that President Santiago Peña has resigned, which I have not been able to confirm.", "why": "Ueno's customers equal more than half the country's adults and it manages public money, including pensions. Peña was a partner in the group that owns the bank until March 2025, which has turned the collapse into a political crisis.", "terms": [{"t": "Bank resolution", "d": "A procedure in which the supervisor takes control of a failing bank to wind it down in an orderly way."}, {"t": "Solvency ratio", "d": "The bank's capital compared with the risk of its loans. If it falls too far, the bank cannot carry on."}, {"t": "Deposit Guarantee Fund", "d": "A fund that pays savers back up to a limit if their bank fails."}], "visual": {"type": "claims", "title": "What is confirmed and what is not", "items": [{"who": "AP and Reuters", "says": "The central bank took over Ueno because of its low solvency.", "ok": "si"}, {"who": "Reuters and Forbes Argentina", "says": "The central bank governor, Carlos Carvallo, resigned at Peña's request.", "ok": "si"}, {"who": "Reuters", "says": "Prosecutors sought an investigation and ordered the arrest of eight people linked to the bank.", "ok": "una"}, {"who": "Anadolu", "says": "President Peña has resigned.", "ok": "no"}], "source": "AP, Reuters, Forbes Argentina and Anadolu"}, "status": "parcial", "check": "The takeover and the central bank governor's resignation are confirmed by AP, Reuters and Forbes Argentina. President Peña's resignation is claimed only by Anadolu, in a news summary; no other source I checked reports it. It may be a mix-up with the central bank resignation.", "facts": ["Takeover: 3 November 2026", "About 3 million customers and about $850m in public funds (Reuters)", "Deposits of $2.836bn in September (Forbes, with data from the banking superintendency)", "The law requires guaranteed amounts to be paid within 15 days, extendable by another 15 (AP)"], "sources": [{"name": "AP (via AJC)", "url": "https://www.ajc.com/news/2026/11/paraguay-seizes-major-digital-bank-tied-to-president-leaving-millions-of-customers-in-limbo/", "outlet": "AP", "lean": "centro", "about": "US news agency. Published here by a local outlet that reproduces it.", "rating": ""}, {"name": "Reuters (via The Star)", "url": "https://www.thestar.com.my/news/world/2026/11/04/paraguay039s-central-bank-chief-resigns-at-president039s-request-as-digital-lender-crisis-deepens", "outlet": "Reuters", "lean": "centro", "about": "British news agency based in London.", "rating": "AllSides: centre"}, {"name": "Forbes Argentina", "url": "https://www.forbesargentina.com/today/crisis-bancaria-paraguay-intervienen-banco-mas-us-2800-millones-depositos-n101654", "outlet": "Forbes Argentina", "lean": "nd", "about": "Argentine edition of the US business magazine.", "rating": ""}, {"name": "Anadolu: morning briefing, 6 Nov", "url": "https://www.aa.com.tr/en/world/morning-briefing-nov-6-2026/4113576", "outlet": "Anadolu", "lean": "der", "about": "Turkish state news agency. On Middle East topics it is worth cross-checking.", "rating": "MBFC: right, mixed reliability, pro-government"}], "official": [{"name": "Central Bank of Paraguay", "url": "https://www.bcp.gov.py/", "note": "I have not checked its statement directly."}]}, {"id": "int-nz", "cat": "Internacional", "title": "New Zealand votes tomorrow: Luxon seeks re-election against Hipkins", "summary": "New Zealanders elect a parliament this Saturday, 7 November. It is a rematch of 2023: conservative prime minister Christopher Luxon against Labour's Chris Hipkins. Early voting began on 26 October and polls point to a close result.", "why": "Under New Zealand's proportional system a coalition almost always governs, so election night may not decide who will be prime minister: in 2023 it took six weeks.", "terms": [{"t": "Mixed-member proportional system (MMP)", "d": "Each voter chooses a local MP and a party; seats are shared out by the party vote."}], "visual": {"type": "timeline", "title": "Election timetable", "items": [{"date": "21 Jan", "label": "Luxon announces the date"}, {"date": "1 Oct", "label": "Parliament dissolved"}, {"date": "26 Oct", "label": "Early voting begins"}, {"date": "7 Nov", "label": "Election", "hl": true}], "source": "Wikipedia (polls), MacroBusiness, 1News"}, "status": "confirmada", "check": "The date and the candidates are confirmed by AAP, Reuters, 1News and the Wikipedia polling page. I do not show poll figures because I could not verify the column order in the table I consulted.", "facts": ["Outgoing government: National Party with ACT and NZ First", "In 2023 Luxon was sworn in six weeks after the election (1News)"], "sources": [{"name": "1News", "url": "https://www.1news.co.nz/2026/01/21/game-on-as-pm-luxon-reveals-2026-election-date/", "outlet": "1News", "lean": "nd", "about": "News programmes of TVNZ, New Zealand's public broadcaster.", "rating": ""}, {"name": "AAP", "url": "https://aapnews.aap.com.au/news/luxon-sets-november-7-as-new-zealand-poll-day", "outlet": "AAP", "lean": "nd", "about": "Australian news agency.", "rating": ""}, {"name": "Reuters (via KFGO)", "url": "https://kfgo.com/?p=1362343", "outlet": "Reuters", "lean": "centro", "about": "British news agency based in London.", "rating": "AllSides: centre"}, {"name": "Wikipedia: polls", "url": "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2026_New_Zealand_general_election", "outlet": "Wikipedia", "lean": "nd", "about": "Collaborative encyclopedia. Useful for dates; figures should be cross-checked.", "rating": ""}], "official": [{"name": "New Zealand Electoral Commission", "url": "https://elections.nz/", "note": "Official results from tomorrow."}]}, {"id": "es-bce", "cat": "Economía y mercados", "title": "Spain formalises Hernández de Cos's bid to lead the ECB today", "summary": "According to EFE, the government is sending a letter to the Eurogroup president today to formalise the candidacy of Pablo Hernández de Cos, former governor of the Bank of Spain and general manager of the Bank for International Settlements. The government had already backed him in July, and in October it was reported that the PP supports him too.", "status": "parcial", "check": "The government's backing and his profile appear in several outlets (Euronews in July, Moncloa.com in October, Artículo 14). That the letter is sent today is reported only by EFE.", "facts": ["Letter to the Eurogroup president (according to EFE)", "He was governor of the Bank of Spain from 2018 to 2024 (Euronews)", "Among his rivals mentioned in July: Klaas Knot, Joachim Nagel and Isabel Schnabel (Euronews)", "Artículo 14 reports an early exit for Lagarde"], "sources": [{"name": "EFE (via Infobae)", "url": "https://www.infobae.com/espana/agencias/2026/11/05/hoy-sera-noticia-viernes-6-de-noviembre/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}, {"name": "Euronews (Spanish), July 2026", "url": "https://es.euronews.com/business/2026/07/21/espana-respalda-a-hernandez-de-cos-en-su-primera-candidatura-a-la-presidencia-del-bce", "outlet": "Euronews", "lean": "cizq", "about": "Pan-European channel and website based in France. It has received EU funding, according to MBFC.", "rating": "MBFC: centre left, mostly reliable. AllSides: centre (low confidence)"}, {"name": "Moncloa.com (private outlet), Oct 2026", "url": "https://www.moncloa.com/2026/10/15/hernandez-de-cos-candidatura-bce-3448987/", "outlet": "Moncloa.com", "lean": "nd", "about": "Private digital outlet. It is not the government's official website, despite the name.", "rating": ""}, {"name": "Artículo 14", "url": "https://www.articulo14.es/economia/quien-es-pablo-hernandez-de-cos-el-espanol-que-podria-suceder-a-christine-lagarde-al-frente-del-bce-20261029.html", "outlet": "Artículo 14", "lean": "nd", "about": "Spanish digital newspaper.", "rating": ""}], "official": [], "why": "If chosen, it would be the first time a Spaniard leads the European Central Bank, which sets interest rates for the eurozone.", "terms": [{"t": "ECB", "d": "European Central Bank: sets interest rates for the euro countries."}, {"t": "Eurogroup", "d": "The meeting of eurozone finance ministers."}], "visual": {"type": "steps", "title": "The road to the candidacy", "items": [{"label": "July 2026", "text": "The government backs Hernández de Cos (Euronews)"}, {"label": "October 2026", "text": "The PP is reported to back him too (Moncloa.com)"}, {"label": "Today", "text": "Letter to the Eurogroup president to make it formal (according to EFE)", "hl": true}, {"label": "After", "text": "Euro countries choose among the candidates (general context)", "dim": true}], "source": "Euronews, Moncloa.com and EFE"}}, {"id": "eco-wallst", "cat": "Economía y mercados", "title": "Wall Street has its worst session since April 2025 on a mass sell-off of AI stocks", "summary": "On Thursday the Nasdaq fell 5.52%, the S&P 500 4.36% and the Dow Jones 3.44%. Analysts put it down to fears of tougher AI regulation and a slowdown in data centre building after the Democratic win. The fear index (VIX) rose almost 70%.", "status": "confirmada", "check": "The figures match in IC Markets, NordFX and The Rio Times; CaixaBank speaks of a Nasdaq fall of \"almost 6%\". I have not read the original Reuters or AP report: all are broker or analysis notes.", "facts": ["Nasdaq: 24,315 (-5.52%)", "S&P 500: ~7,354 (-4.36%)", "Dow: 51,523 (-3.44%)", "VIX: 28.18 (+69.7%)", "US 10-year bond: ~4.83 to 4.84%"], "sources": [{"name": "IC Markets", "url": "https://www.ic.com/blog/general-market-analysis-06-november-2026-ic/", "outlet": "IC Markets", "lean": "empresa", "about": "Currency and CFD broker. Its market notes have a commercial purpose.", "rating": ""}, {"name": "NordFX", "url": "https://nordfx.com/market-news/market-pulse-november-06-2026", "outlet": "NordFX", "lean": "empresa", "about": "Currency broker. Its market notes have a commercial purpose.", "rating": ""}, {"name": "The Rio Times", "url": "https://www.riotimesonline.com/global-economy-briefing-november-6-2026/", "outlet": "The Rio Times", "lean": "nd", "about": "English-language outlet focused on Brazil and Latin America.", "rating": ""}, {"name": "CaixaBank Research", "url": "https://www.caixabankresearch.com/en/publications/financial-markets-daily-report/06-november-2026", "outlet": "CaixaBank Research", "lean": "empresa", "about": "Economic research service of the Spanish bank CaixaBank. It is market analysis, not journalism.", "rating": ""}], "official": [], "why": "AI companies weigh heavily on the stock market. When they fall, they drag down the indices and the investment and pension funds that track them.", "terms": [{"t": "Nasdaq", "d": "New York stock index heavily weighted towards tech companies."}, {"t": "VIX", "d": "The so-called fear index: it rises when investors expect more turbulence."}], "visual": {"type": "bars", "title": "Thursday's fall on Wall Street", "unit": "%", "items": [{"label": "Nasdaq", "value": -5.52, "hl": true}, {"label": "S&P 500", "value": -4.36}, {"label": "Dow Jones", "value": -3.44}], "source": "IC Markets, NordFX and The Rio Times"}}, {"id": "eco-asia", "cat": "Economía y mercados", "title": "The fall spreads to Asia: the Kospi triggers the stock market's automatic halt", "summary": "South Korea's Kospi fell more than 8% at one point and triggered its automatic trading halt (circuit breaker) for the fifth time this year. Samsung and SK Hynix fell more than 5%. Japan's Nikkei had its worst day since April 2025 and Taiwan's index entered a bear market.", "status": "contradictoria", "check": "The Kospi halt is confirmed by Herald Corp, Tickmill and NordFX. The percentages do not match: for the Nikkei, Tickmill gives -5.8% and NordFX -6.14%; for the Kospi, Herald gives -8.19% at the moment of the halt and NordFX a close of -6.06%. They may not be measuring the same moment of the session.", "facts": ["Kospi: automatic halt after falling more than 8% (5th this year, 11th ever, according to Herald Corp)", "Nikkei: between -5.8% and -6.1% depending on the source", "Taiwan: -4.5%, bear market"], "sources": [{"name": "Herald Corp (Korea)", "url": "https://biz.heraldcorp.com/article/10789477", "outlet": "Herald Corp", "lean": "nd", "about": "South Korean press group.", "rating": ""}, {"name": "Tickmill", "url": "https://www.tickmill.com/blog/daily-market-outlook-november-6-2026", "outlet": "Tickmill", "lean": "empresa", "about": "Currency and CFD broker. Its market notes have a commercial purpose.", "rating": ""}, {"name": "NordFX", "url": "https://nordfx.com/market-news/market-pulse-november-06-2026", "outlet": "NordFX", "lean": "empresa", "about": "Currency broker. Its market notes have a commercial purpose.", "rating": ""}, {"name": "New Straits Times", "url": "https://www.nst.com.my/amp/business/corporate/2026/11/1571948/market-pulse-am-nov-6-2026-watch", "outlet": "New Straits Times", "lean": "nd", "about": "Malaysian English-language newspaper.", "rating": ""}], "official": [], "why": "It shows the fall did not stay in the US: the stock markets of Japan, Korea and Taiwan, heavy in chipmakers, fell sharply.", "terms": [{"t": "Circuit breaker", "d": "An automatic brake that halts the stock market for a few minutes when it falls too far too fast."}], "visual": {"type": "bars", "title": "The figures differ by source", "unit": "%", "items": [{"label": "Nikkei (Tickmill)", "value": -5.8}, {"label": "Nikkei (NordFX)", "value": -6.14}, {"label": "Kospi, when the brake kicked in (Herald)", "value": -8.19, "hl": true}, {"label": "Kospi, close (NordFX)", "value": -6.06}], "source": "Herald Corp, Tickmill and NordFX. They may measure different moments of the session"}}, {"id": "eco-nfp", "cat": "Economía y mercados", "title": "Today's agenda: US jobs data for October", "summary": "October non-farm payrolls are published at 13:30 GMT. The consensus expects about 65,000 jobs, against 29,000 the month before. The University of Michigan consumer confidence index follows at 15:00 GMT.", "status": "parcial", "check": "The time and the consensus match in The Rio Times and IC Markets. These are market forecasts, not published data.", "facts": ["Oct payrolls: 13:30 GMT; consensus ~65,000; previous 29,000", "Michigan: 15:00 GMT; consensus 48"], "sources": [{"name": "The Rio Times", "url": "https://www.riotimesonline.com/global-economy-briefing-november-6-2026/", "outlet": "The Rio Times", "lean": "nd", "about": "English-language outlet focused on Brazil and Latin America.", "rating": ""}, {"name": "IC Markets", "url": "https://www.ic.com/blog/general-market-analysis-06-november-2026-ic/", "outlet": "IC Markets", "lean": "empresa", "about": "Currency and CFD broker. Its market notes have a commercial purpose.", "rating": ""}], "official": [{"name": "Bureau of Labor Statistics (US)", "url": "", "note": "It publishes the official figure; I do not have a verified link to this release"}], "why": "The jobs figure helps the Federal Reserve decide whether to raise or cut rates, and that moves markets worldwide.", "terms": [{"t": "Non-farm payrolls", "d": "Jobs created in the US in a month, not counting farm work."}, {"t": "Consensus", "d": "The average of what analysts expect."}], "visual": {"type": "bars", "title": "US jobs created, thousands", "unit": " mil", "items": [{"label": "Previous month (figure)", "value": 29}, {"label": "October (expected)", "value": 65, "dim": true}], "source": "The Rio Times and IC Markets. The actual figure is published today"}}, {"id": "eco-marvell", "cat": "Economía y mercados", "title": "Marvell buys Lumentum for $115bn to lead AI's optical connections", "summary": "Chipmaker Marvell agreed on Monday to buy Lumentum, a laser and optical components specialist, in an all-share deal. Each Lumentum share will be swapped for 4.5 Marvell shares, a premium of about 24%.", "why": "AI data centres move so much data that copper cable falls short and the industry is moving to light. This deal puts two key pieces of that shift into one company, and it still needs shareholder and regulatory approval.", "terms": [{"t": "All-share deal", "d": "The buyer pays with its own shares instead of cash."}, {"t": "Premium", "d": "What is paid above the share price before the announcement."}, {"t": "Enterprise value", "d": "Share price plus debt, minus cash."}], "visual": {"type": "stat", "title": "The deal", "items": [{"value": "$115bn", "label": "Lumentum enterprise value"}, {"value": "4,5", "label": "Marvell shares for each Lumentum share"}, {"value": "23,9%", "label": "premium over the 28 Oct close"}, {"value": "12 to 18 months", "label": "expected time to complete it", "dim": true}], "source": "Joint statement and customer emails filed with the SEC"}, "status": "confirmada", "check": "Figures taken from the documents the companies themselves filed with the SEC, the US securities regulator. Light Reading reports it separately. The benefits they promise (synergies of more than $1bn) are company forecasts.", "facts": ["Announced: 2 November 2026", "After completion, Marvell shareholders will own 67% and Lumentum shareholders 33%", "Matt Murphy will remain chairman and chief executive"], "sources": [{"name": "Statement (SEC filing)", "url": "https://www.sec.gov/Archives/edgar/data/0001633978/000119312526442760/d163169d425.htm", "outlet": "Marvell and Lumentum (SEC)", "lean": "oficial", "about": "Official company document filed with the US securities regulator. It is the interested party.", "rating": ""}, {"name": "Customer email (SEC filing)", "url": "https://www.sec.gov/Archives/edgar/data/0001633978/000119312526442765/d162314d425.htm", "outlet": "Marvell and Lumentum (SEC)", "lean": "oficial", "about": "Official company document filed with the US securities regulator.", "rating": ""}, {"name": "Light Reading", "url": "https://lightreading.com/ai-machine-learning/marvell-strikes-115b-deal-for-lumentum", "outlet": "Light Reading", "lean": "nd", "about": "Telecoms trade publication.", "rating": ""}], "official": [{"name": "SEC: Lumentum filings", "url": "https://www.sec.gov/Archives/edgar/data/0001633978/000119312526442758/d163169d8k.htm", "note": "Form 8-K for the merger agreement."}]}, {"id": "tec-datacenters", "cat": "Tecnología", "title": "US voters halt AI data centres in dozens of towns", "summary": "Tuesday's elections included local votes on data centres, more than half of them in Ohio. According to early summaries, voters approved restrictions in many towns; one AI newsletter claims they were rejected in all 21 Ohio votes.", "status": "parcial", "check": "That there were about 21 votes in Ohio is confirmed by S&P Global, Smart Cities Dive and Stateline, before polling day. The \"21 out of 21\" result appears only in AI Weekly; Tech Startups speaks of restrictions approved in \"dozens of communities\", with no figures.", "facts": ["Ohio votes on 3 Nov: 21 (Ballotpedia, via Smart Cities Dive)", "Across the US: 41 votes in 10 states on 3 Nov (Smart Cities Dive)", "Ohio result: reported only by AI Weekly"], "sources": [{"name": "AI Weekly", "url": "https://aiweekly.co/ai-news-today/edition/2026-11-05", "outlet": "AI Weekly", "lean": "nd", "about": "Newsletter that collects artificial intelligence news. It does no original reporting.", "rating": ""}, {"name": "Tech Startups", "url": "https://techstartups.com/2026/11/04/top-tech-news-roundup-for-today-november-4-2026-googles-15b-ai-bet-metas-e53b-bond-demand-canvas-restructuring-and-spacexs-5g-push/", "outlet": "Tech Startups", "lean": "nd", "about": "Tech and startup news blog.", "rating": ""}, {"name": "Smart Cities Dive", "url": "https://www.smartcitiesdive.com/news/data-centers-on-more-than-3-dozen-local-ballots/873183/", "outlet": "Smart Cities Dive", "lean": "nd", "about": "Publication specialising in urban management and infrastructure.", "rating": ""}, {"name": "S&P Global", "url": "https://www.spglobal.com/market-intelligence/en/news-insights/articles/2026/10/data-center-backlash-shapes-midterm-ballots-campaigns-across-us-106324121", "outlet": "S&P Global", "lean": "empresa", "about": "Financial data and analysis company.", "rating": ""}], "official": [], "why": "AI data centres use a lot of electricity and water. If residents block them at the ballot box, AI expansion could slow.", "terms": [{"t": "Data centre", "d": "Building full of servers that run internet services and artificial intelligence."}], "visual": {"type": "stat", "title": "The votes in numbers", "items": [{"value": "41", "label": "local votes in 10 states on 3 Nov"}, {"value": "21", "label": "of them in Ohio"}, {"value": "21 of 21", "label": "rejected in Ohio, according to AI Weekly (unconfirmed)", "dim": true}], "source": "Smart Cities Dive (Ballotpedia) and AI Weekly"}}, {"id": "tec-chips-ue", "cat": "Tecnología", "title": "Europe puts €525m into chip design startups", "summary": "A new European Chips Act initiative focuses on semiconductor design, a segment in which European companies have less than 1% of global revenue.", "status": "una_fuente", "check": "I have only seen it in Euronews's summary. I have not found the European Commission's statement.", "facts": ["€525m for chip design startups", "European companies have less than 1% of the segment's global revenue (according to Euronews)"], "sources": [{"name": "Euronews", "url": "https://www.euronews.com/video/2026/11/06/latest-news-bulletin-november-6th-2026-morning", "outlet": "Euronews", "lean": "cizq", "about": "Pan-European channel and website based in France. It has received EU funding, according to MBFC.", "rating": "MBFC: centre left, mostly reliable. AllSides: centre (low confidence)"}], "official": [], "why": "Europe depends on other countries to design chips. This money aims to grow European companies in that field.", "terms": [{"t": "European Chips Act", "d": "EU plan to produce and design more semiconductors inside Europe."}], "visual": {"type": "stat", "title": "In numbers", "items": [{"value": "€525m", "label": "for chip design startups"}, {"value": "less than 1%", "label": "of the segment's global revenue goes to European companies"}], "source": "Euronews (single source)"}}, {"id": "tec-microsoft", "cat": "Tecnología", "title": "Microsoft offers voluntary exits to about 60,000 employees, a quarter of its workforce", "summary": "Two weeks ago Microsoft opened a voluntary exit programme for about 60,000 workers in the US, UK, Canada and India, on terms similar to its usual severance. They have until early December to decide.", "why": "It is one of the biggest staff cuts proposed by a big tech company, while it spends record sums on AI. It affects employees in the UK.", "terms": [{"t": "Voluntary exit", "d": "The company offers money to anyone who decides to leave, instead of laying people off."}], "visual": {"type": "stat", "title": "The offer", "items": [{"value": "~60.000", "label": "employees eligible to accept it"}, {"value": "~27%", "label": "of the workforce (AFP)"}, {"value": "223.000", "label": "employees at 30 June"}, {"value": "Dec", "label": "deadline to decide, according to Business Insider", "dim": true}], "source": "KUOW, AFP (via Gulf News) and Reuters (via Mobile World Live)"}, "status": "confirmada", "check": "Reported by KUOW (Seattle public radio), AFP and Reuters from the internal email of people chief Amy Coleman. It is not from today: it was announced on 26 October, but the deadline is still open.", "facts": ["Only for level 70 or below, up to vice president", "Excludes sales, part of marketing and some data centre teams", "In April it already offered early retirement; about 30% of those eligible took it (CNBC, quoted by AFP)"], "sources": [{"name": "KUOW", "url": "https://www.kuow.org/technology/2026-10-26/microsoft-offers-voluntary-buyouts-to-a-quarter-of-its-workforce", "outlet": "KUOW", "lean": "nd", "about": "Public radio station in Seattle, Microsoft's home city.", "rating": ""}, {"name": "AFP (via Gulf News)", "url": "https://gulfnews.com/technology/microsoft-offers-voluntary-exit-packages-to-60000-staff-1.500724575", "outlet": "AFP", "lean": "nd", "about": "French news agency. Published here by a newspaper in the Emirates.", "rating": ""}, {"name": "Reuters (via Mobile World Live)", "url": "https://www.mobileworldlive.com/?p=516617", "outlet": "Reuters", "lean": "centro", "about": "British news agency based in London. Quoted here by a mobile industry website.", "rating": "AllSides: centre"}], "official": []}, {"id": "tec-google", "cat": "Tecnología", "title": "Google to invest $17bn in its first data centre in Wyoming", "summary": "Google announced a long-term investment of $17bn in a data centre in Laramie County (Wyoming). It will have a 702-megawatt fuel cell installation with carbon capture.", "why": "AI needs huge amounts of electricity and tech firms are looking for places with available power. It comes days after voters in several US towns rejected new data centres.", "terms": [{"t": "Fuel cell", "d": "A device that makes electricity through a chemical reaction, usually from gas or hydrogen."}, {"t": "Carbon capture (CCS)", "d": "A technique that traps emitted CO2 and stores it underground."}], "visual": {"type": "stat", "title": "The project", "items": [{"value": "$17bn", "label": "announced investment"}, {"value": "702 MW", "label": "of fuel cells with carbon capture"}], "source": "Anadolu"}, "status": "una_fuente", "check": "I have only read it in Anadolu's summary. I have not found Google's announcement or another source.", "facts": ["Partners: Tallgrass Energy, Black Hills Energy, AEP and Related Digital, according to Anadolu"], "sources": [{"name": "Anadolu: morning briefing, 6 Nov", "url": "https://www.aa.com.tr/en/world/morning-briefing-nov-6-2026/4113576", "outlet": "Anadolu", "lean": "der", "about": "Turkish state news agency. On Middle East topics it is worth cross-checking.", "rating": "MBFC: right, mixed reliability, pro-government"}], "official": []}, {"id": "tec-softbank", "cat": "Tecnología", "title": "China blocks SoftBank's purchase of ABB's robotics business", "summary": "Switzerland's ABB said SoftBank told it that China's foreign investment review body has blocked the $5.4bn deal.", "why": "It shows China can also stop deals between non-Chinese companies when they do business on its territory. Industrial robotics is a strategic sector.", "terms": [{"t": "Investment security review", "d": "Government checks on takeovers of companies they consider sensitive."}], "visual": {"type": "stat", "title": "The blocked deal", "items": [{"value": "$5.4bn", "label": "value of the deal"}], "source": "Anadolu"}, "status": "una_fuente", "check": "Only in Anadolu's summary. I have not checked ABB's statement.", "facts": ["Body cited: China's Foreign Investment Security Review Mechanism Office"], "sources": [{"name": "Anadolu: morning briefing, 6 Nov", "url": "https://www.aa.com.tr/en/world/morning-briefing-nov-6-2026/4113576", "outlet": "Anadolu", "lean": "der", "about": "Turkish state news agency. On Middle East topics it is worth cross-checking.", "rating": "MBFC: right, mixed reliability, pro-government"}], "official": []}, {"id": "sci-energeticas", "cat": "Ciencia y salud", "title": "Energy drinks show up far more often in cardiac arrest reports, especially among young people", "summary": "A study being presented at the American Heart Association congress (Chicago, 6 to 9 November) reviewed 28,345 adverse event reports sent to the FDA between 2017 and 2025. Those mentioning energy drinks or stimulant supplements cited cardiac arrest about 11 times more often than those for other products.", "why": "About half of those reports involved adults aged 18 to 34. But the study does not show that the drinks cause the problems: reports are voluntary and nobody knows how many people drank them without problems.", "terms": [{"t": "Adverse event report", "d": "A voluntary report to the FDA of a health problem after using a product. It is not verified."}, {"t": "Preliminary study", "d": "Presented at a congress without peer review. It may change when published."}, {"t": "FDA", "d": "US agency that regulates food and medicines."}], "visual": {"type": "bars", "title": "How many times more often each problem appears in the reports", "unit": "x", "items": [{"label": "Cardiac arrest", "value": 11, "hl": true}, {"label": "Heart attack", "value": 4.5}, {"label": "Ventricular arrhythmia", "value": 4}], "source": "HealthDay and FoodBev, with AHA data"}, "status": "confirmada", "check": "The AHA press release, HealthDay, FoodBev and Epocrates agree on the figures. Important: these are shares of reports, not disease rates among consumers, and the work is not peer reviewed.", "facts": ["854 of the 28,345 reports mentioned caffeine or stimulant products", "Authors: University of Virginia School of Medicine", "The AHA considers up to 400 mg of caffeine a day safe for most adults"], "sources": [{"name": "American Heart Association", "url": "https://newsroom.heart.org/news/energy-drinks-stimulant-products-linked-to-cardiac-arrest-heart-attack-in-young-adults", "outlet": "AHA", "lean": "oficial", "about": "US non-profit medical association. It organises the congress.", "rating": ""}, {"name": "HealthDay (via MedicineNet)", "url": "https://www.medicinenet.com/energy_drinks_can_be_a_heart_stopper_young_adults/news.htm", "outlet": "HealthDay", "lean": "nd", "about": "US health news agency.", "rating": ""}, {"name": "FoodBev Media", "url": "https://www.foodbev.com/news/study-links-energy-drinks-and-stimulant-supplements-to-increased-reports-of-serious-heart-conditions", "outlet": "FoodBev", "lean": "nd", "about": "British food and drink industry publication.", "rating": ""}], "official": []}, {"id": "sci-donana", "cat": "Ciencia y salud", "title": "Nature: in Doñana, drought led the Iberian lynx to hunt black kite chicks", "summary": "Nature this week publishes a study by Fabrizio Sergio and his team in Doñana National Park. After a disease cut rabbit numbers and a drought followed, lynxes started hunting young kites, apparently to remove competition for the remaining rabbits.", "why": "It shows that climate does not only affect each species separately; it also changes how large predators interact. It is happening in one of Spain's most important natural areas.", "terms": [{"t": "Apex predator", "d": "Animal at the top of the food chain, with no natural predators."}, {"t": "Competition", "d": "When two species depend on the same scarce food."}], "visual": {"type": "steps", "title": "The chain of causes the study describes", "items": [{"label": "1", "text": "A disease cuts rabbit numbers"}, {"label": "2", "text": "The drought leaves fewer alternative prey"}, {"label": "3", "text": "The lynx starts hunting black kite chicks", "hl": true}, {"label": "Effect", "text": "Less competition for the remaining rabbits", "dim": true}], "source": "Nature, vol. 659, no. 8139"}, "status": "una_fuente", "check": "The source is Nature itself (cover summary of the 5 November issue). I have not read the full paper or other coverage.", "facts": ["Nature issue of 5 November 2026", "Species: Iberian lynx (Lynx pardinus) and black kite (Milvus migrans)"], "sources": [{"name": "Nature (5 Nov issue)", "url": "https://www.nature.com/nature/volumes/659/issues/8139", "outlet": "Nature", "lean": "oficial", "about": "Peer-reviewed British science journal. It is the primary source for the study.", "rating": ""}], "official": []}, {"id": "sci-hielo", "cat": "Ciencia y salud", "title": "Abrupt climate shifts in the last ice age were slower than thought", "summary": "A study in Science, based on stalagmites with annual layers from caves in India and China, estimates that the abrupt shifts in the Atlantic ocean circulation lasted more than 100 years, about 180 on average. Greenland ice cores had suggested decades.", "why": "That Atlantic circulation regulates Europe's climate. Knowing how fast it changed in the past helps refine models of what could happen with today's warming.", "terms": [{"t": "AMOC", "d": "Atlantic circulation that carries warm water north. It shapes Europe's climate."}, {"t": "Speleothem", "d": "A cave formation, such as a stalagmite, that keeps a layer-by-layer record of the climate."}], "visual": {"type": "stat", "title": "How long the transitions lasted", "items": [{"value": "~180 years", "label": "average according to the stalagmites"}, {"value": ">100 years", "label": "every transition measured"}, {"value": "Decades", "label": "what the ice cores suggested", "dim": true}], "source": "Phys.org, on the Science study"}, "status": "una_fuente", "check": "Read in Phys.org, which summarises the Science paper (Dong et al., 2026). I have not read the original.", "facts": ["Caves: Cherrapunji (India), Shuixi and Zhangjia (China)"], "sources": [{"name": "Phys.org", "url": "https://phys.org/news/2026-11-ice-age-abrupt-climate-shifts.html", "outlet": "Phys.org", "lean": "nd", "about": "Science news website that summarises studies and university press releases.", "rating": ""}], "official": []}, {"id": "sci-rapamicina", "cat": "Ciencia y salud", "title": "An anti-ageing drug candidate improves blood flow to the brain in people at genetic risk of Alzheimer's", "summary": "University of Missouri researchers found that four weeks of low-dose rapamycin improved blood flow in the brain of healthy middle-aged adults with the APOE4 gene variant. Those without it saw no improvement.", "why": "APOE4 is the main genetic risk factor for Alzheimer's. This is an early result: it does not measure memory or disease prevention, and it does not justify taking the drug on your own.", "terms": [{"t": "APOE4", "d": "A gene variant that raises the risk of Alzheimer's."}, {"t": "Rapamycin", "d": "An immunosuppressant drug being studied for its effects on ageing."}], "visual": {"type": "claims", "title": "What the study does and does not say", "items": [{"who": "Univ. of Missouri", "says": "Better blood flow to the brain in APOE4 carriers after 4 weeks.", "ok": "una"}, {"who": "Univ. of Missouri", "says": "Larger benefit in women.", "ok": "una"}, {"who": "Not studied", "says": "Whether it prevents Alzheimer's or improves memory.", "ok": "no"}], "source": "ScienceDaily, university press release"}, "status": "una_fuente", "check": "Only the university press release published in ScienceDaily. I do not know the number of participants or the journal.", "facts": ["Study lead: Ai-Ling Lin", "Published in ScienceDaily on 5 November 2026"], "sources": [{"name": "ScienceDaily", "url": "https://www.sciencedaily.com/releases/2026/11/261104084017.htm", "outlet": "ScienceDaily", "lean": "nd", "about": "Website that publishes university press releases. It does no reporting of its own.", "rating": ""}], "official": []}, {"id": "sci-ondas", "cat": "Ciencia y salud", "title": "\"Lonely\" brain waves during deep sleep linked to memory loss", "summary": "According to ScienceDaily, a team has linked the build-up of Alzheimer's proteins to changes in brain waves during deep sleep and to worse memory. I have only seen the headline and the standfirst.", "why": "Deep sleep helps fix memories. If these changes are confirmed, they could help detect Alzheimer's earlier, but this is still basic research.", "terms": [{"t": "Deep sleep (non-REM)", "d": "Slow-wave sleep phase in which the brain consolidates memory."}], "visual": {"type": "claims", "title": "What we know", "items": [{"who": "ScienceDaily", "says": "Link between Alzheimer's proteins, disrupted sleep waves and memory.", "ok": "una"}, {"who": "No source", "says": "Authors, study size and journal.", "ok": "no"}], "source": "ScienceDaily (headline)"}, "status": "una_fuente", "check": "Only the ScienceDaily headline and standfirst from 5 November. The earlier Berkeley studies on sleep and amyloid that show up in searches date from 2015 to 2023 and are not this one.", "facts": ["Published on 5 November 2026"], "sources": [{"name": "ScienceDaily", "url": "https://www.sciencedaily.com/news/health_medicine/", "outlet": "ScienceDaily", "lean": "nd", "about": "Website that publishes university press releases. It does no reporting of its own.", "rating": ""}], "official": []}, {"id": "cul-otono", "cat": "Cultura", "title": "Madrid Autumn Festival opens with Robert Wilson and Maria de Medeiros", "summary": "The 44th Madrid Autumn Festival, run by the Madrid regional government, starts today and runs until 29 November, with 29 shows from 18 countries. It opens with Robert Wilson's \"PESSOA, Since I've Been Me\", starring Maria de Medeiros, at Teatros del Canal today and tomorrow, both sold out.", "why": "It is one of Spain's main performing arts festivals and brings international companies that rarely perform here to Madrid.", "terms": [{"t": "Performing arts", "d": "Theatre, dance, circus and live shows."}], "visual": {"type": "stat", "title": "The festival in numbers", "items": [{"value": "44th", "label": "edition"}, {"value": "29", "label": "shows"}, {"value": "18", "label": "countries"}, {"value": "6 to 29 Nov", "label": "dates"}], "source": "Madrid regional government and esMadrid"}, "status": "confirmada", "check": "The official press release, the programme, esMadrid and Time Out agree on dates and figures.", "facts": ["Opening performance: 6 and 7 November, Teatros del Canal", "Opening night tickets sold out"], "sources": [{"name": "Madrid regional government (press release)", "url": "https://www.comunidad.madrid/press-releases/download/118493", "outlet": "Madrid regional government", "lean": "oficial", "about": "Regional government that organises the festival. It is the interested party.", "rating": ""}, {"name": "esMadrid", "url": "https://www.esmadrid.com/node/109614", "outlet": "esMadrid", "lean": "oficial", "about": "Official tourism website of Madrid City Council.", "rating": ""}, {"name": "Time Out Madrid", "url": "https://www.timeout.es/madrid/es/teatro/las-8-obras-que-no-te-puedes-perder-del-festival-de-otono-en-madrid", "outlet": "Time Out", "lean": "nd", "about": "International listings guide, Madrid edition.", "rating": ""}], "official": [{"name": "Official programme (PDF)", "url": "https://www.madrid.org/fo/2026/descargas/PROGRAMA-44FO.pdf", "note": ""}]}, {"id": "cul-monzon", "cat": "Cultura", "title": "Daniel Monzón's \"Ruega por nosotras\", about the Patronato de Protección a la Mujer, opens in cinemas", "summary": "Daniel Monzón's film about the Patronato de Protección a la Mujer reaches cinemas today. Between 1941 and 1985 that institution locked up thousands of young women in Spain to \"reform\" them. It premiered out of competition at the San Sebastián Film Festival.", "why": "The Patronato operated under Franco and in the early years of democracy, and its history is little known. The film brings it to a wide audience.", "terms": [{"t": "Patronato de Protección a la Mujer (Women's Protection Board)", "d": "Public body that locked up girls and young women considered \"fallen\" or at moral risk."}], "visual": {"type": "stat", "title": "The film", "items": [{"value": "1941 to 1985", "label": "years the Patronato existed"}, {"value": "136 min", "label": "running time"}, {"value": "San Sebastián", "label": "official selection, out of competition"}], "source": "San Sebastián Film Festival, Otros Cines and Guía del Ocio"}, "status": "confirmada", "check": "Today's release is confirmed by Guía del Ocio; the film details and the San Sebastián premiere by the festival itself and Otros Cines. I do not give the number of women held because I have not verified it.", "facts": ["In cinemas: 6 November 2026"], "sources": [{"name": "San Sebastián Film Festival", "url": "https://sansebastianfestival.com/2026/sections_adn_films/7/740238/in", "outlet": "SSIFF", "lean": "oficial", "about": "Official festival website.", "rating": ""}, {"name": "Otros Cines", "url": "https://otroscines.com/post/festival-de-san-sebastian-2026-critica-de-ruega-por-nosotras-pelicula-de-daniel-monzon-seccion-oficial-fuera-de-competencia", "outlet": "Otros Cines", "lean": "nd", "about": "Argentine film review website.", "rating": ""}, {"name": "Guía del Ocio", "url": "https://guiadelocio.es/madrid/?p=60093", "outlet": "Guía del Ocio", "lean": "nd", "about": "Spanish listings and entertainment guide.", "rating": ""}], "official": []}, {"id": "cul-duran", "cat": "Cultura", "title": "Duran Duran return to Madrid after 21 years for their only concert in Spain", "summary": "The British band plays tonight at Madrid's Movistar Arena as part of its Free to Love tour. It is their only concert in Spain and their first in the capital in 21 years.", "why": "It is one of Madrid's most awaited concerts of the season for fans of eighties pop.", "terms": [], "visual": {"type": "stat", "title": "The concert", "items": [{"value": "21 years", "label": "without playing in Madrid"}, {"value": "1", "label": "only date in Spain"}], "source": "esMadrid and La Ganzúa"}, "status": "confirmada", "check": "esMadrid (official) and La Ganzúa agree on the date, the venue and that it is the only concert in Spain.", "facts": ["Movistar Arena, 6 November 2026", "Free to Love Tour"], "sources": [{"name": "esMadrid", "url": "https://www.esmadrid.com/agenda/duran-duran-movistar-arena", "outlet": "esMadrid", "lean": "oficial", "about": "Official tourism website of Madrid City Council.", "rating": ""}, {"name": "La Ganzúa", "url": "https://www.laganzua.net/noticias/32622-duran-duran-vuelven-a-madrid-21-anos-despues-para-un-unico-concierto-el-6-de-noviembre", "outlet": "La Ganzúa", "lean": "nd", "about": "Spanish music website.", "rating": ""}], "official": []}, {"id": "cul-grammy", "cat": "Cultura", "title": "Latin Grammys: Edgar Barrera leads the nominations and Rosalía has seven", "summary": "The Latin Grammy gala is next week at the MGM Grand Garden Arena in Las Vegas. Producer Edgar Barrera leads with 10 nominations; Karol G, Rosalía, Jorge Drexler and CA7RIEL & Paco Amoroso have 7 each. The sources disagree on the exact day.", "why": "It is the main award for music in Spanish and Portuguese. Rosalía and Drexler are the Spanish acts with the best chances.", "terms": [{"t": "Latin Recording Academy", "d": "The organisation that awards the Latin Grammys."}], "visual": {"type": "claims", "title": "Which day is the gala?", "items": [{"who": "Hola, Remezcla, Extra.ec", "says": "Thursday 12 November.", "ok": "una"}, {"who": "EFE (via elsalvador.com)", "says": "13 November.", "ok": "una"}], "source": "Hola, Remezcla, Extra.ec and EFE"}, "status": "contradictoria", "check": "The nominations match in every source. The date does not: three outlets say 12 November and an EFE report says the 13th. It may be due to the time difference; check the official website.", "facts": ["Venue: MGM Grand Garden Arena, Las Vegas", "10 nominations for Edgar Barrera"], "sources": [{"name": "Hola USA", "url": "https://www.hola.com/us/entertainment/20260916923796/latin-grammy-2026-nominations/", "outlet": "Hola", "lean": "nd", "about": "Celebrity and society magazine, US edition.", "rating": ""}, {"name": "Remezcla", "url": "https://remezcla.com/?p=489208", "outlet": "Remezcla", "lean": "nd", "about": "US website about Latino culture.", "rating": ""}, {"name": "Extra.ec", "url": "https://www.extra.ec/noticia/farandula/latin-grammy-2026-quienes-actuaran-ver-ceremonia-ecuador-165416.html", "outlet": "Extra", "lean": "nd", "about": "Ecuadorian popular newspaper.", "rating": ""}, {"name": "EFE (via elsalvador.com)", "url": "https://www.elsalvador.com/?p=1249665", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency. Published here by a Salvadoran newspaper.", "rating": "MBFC: least biased, high reliability"}], "official": [{"name": "Latin Grammy (official website)", "url": "https://www.latingrammy.com/", "note": "To confirm the date."}]}, {"id": "cul-u2", "cat": "Cultura", "title": "U2 release their first album of new songs in nine years this month", "summary": "Rolling Stone lists U2's first album of new material in nine years among its November releases. I have not confirmed the title or the exact day with a second source.", "why": "It marks the return of one of the best-selling rock bands, after years of reissues and tours.", "terms": [], "visual": {"type": "claims", "title": "What we know", "items": [{"who": "Rolling Stone", "says": "U2's first album of new songs in nine years, in November.", "ok": "una"}, {"who": "No source", "says": "Exact date and title confirmed by the band.", "ok": "no"}], "source": "Rolling Stone"}, "status": "una_fuente", "check": "Rolling Stone only. A UK aggregator headline today also mentions U2, but does not say what.", "facts": [], "sources": [{"name": "Rolling Stone", "url": "https://www.rollingstone.com/music/music-news/album-releases-november-2026-1235651380/", "outlet": "Rolling Stone", "lean": "nd", "about": "US music and culture magazine.", "rating": ""}], "official": []}, {"id": "dep-espana", "cat": "Deportes", "title": "De la Fuente names his squad for Czech Republic and England today; Rodri out", "summary": "The coach names his squad at 11:30 for the last two Nations League group games: Czech Republic in Prague (Thursday 12th) and England at the Metropolitano (Sunday 15th). According to EFE, Rodri misses out through injury. Thomas Tuchel names the England squad at 14:00.", "status": "parcial", "check": "The dates, opponents and kick-off time match in Flashscore and EFE. Rodri's absence and Tuchel's squad come only from EFE; check them against the published list.", "facts": ["Squad: 11:30; press conference: 12:30", "12 Nov: Czech Republic v Spain (Prague)", "15 Nov: Spain v England (Metropolitano)", "Rodri: out injured (according to EFE)"], "sources": [{"name": "Flashscore", "url": "https://www.flashscore.es/noticias/futbol-uefa-nations-league-las-incognitas-de-la-ultima-lista-de-luis-de-la-fuente-en-2026/SjKa7e2L/", "outlet": "Flashscore", "lean": "nd", "about": "Sports scores and news website.", "rating": ""}, {"name": "EFE Sport (via Infobae)", "url": "https://www.infobae.com/espana/agencias/2026/11/05/viernes-6-de-noviembre-de-2026/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State).", "rating": "MBFC: least biased, high reliability"}], "official": [{"name": "RFEF", "url": "", "note": "The official squad is published by the Federation; I do not have a verified link"}], "why": "These are the last two Nations League group games, with Spain and England in the same group.", "terms": [{"t": "Nations League", "d": "UEFA competition for European national teams, played between tournaments."}], "visual": {"type": "timeline", "title": "The national team's schedule", "items": [{"date": "6 Nov", "label": "Squad list, 11:30", "hl": true}, {"date": "12 Nov", "label": "Czech Republic v Spain, in Prague"}, {"date": "15 Nov", "label": "Spain v England, at the Metropolitano"}], "source": "Flashscore and EFE"}}, {"id": "dep-cr7", "cat": "Deportes", "title": "Cristiano Ronaldo and his national team future: conflicting accounts", "summary": "Anadolu reports that Ronaldo announced he will leave the Portugal team after the November matches (Denmark on the 14th and Wales on the 17th). On 30 September, however, the player himself had ruled out retiring, after leaving the squad over his clash with coach Jorge Jesus.", "status": "contradictoria", "check": "Anadolu reports a retirement announcement. beIN Sports and Emol (with AFP) report that in October he ruled it out and that he is in the preliminary squad. I have not found confirmation from the Portuguese Football Federation.", "facts": ["Portugal's matches: Denmark (14 Nov, Braga) and Wales (17 Nov)", "Record: 146 goals in 234 internationals (beIN)", "30-day ban for leaving the squad, backdated (Emol/AFP)", "Portugal's final squad was expected today (Emol/AFP)"], "sources": [{"name": "Anadolu", "url": "https://www.aa.com.tr/en/world/morning-briefing-nov-6-2026/4113576", "outlet": "Anadolu", "lean": "der", "about": "Turkish state news agency. On Middle East topics it is worth cross-checking.", "rating": "MBFC: right, mixed reliability, pro-government. AllSides: centre (initial 2026 review)"}, {"name": "beIN Sports (Oct)", "url": "https://www.beinsports.com/en-us/soccer/uefa-nations-league/articles/ronaldo-rules-out-international-retirement-but-apologises-for-portugal-exit-2026-10-06", "outlet": "beIN Sports", "lean": "nd", "about": "Sports network of the Qatari group beIN Media.", "rating": ""}, {"name": "Emol / AFP", "url": "https://www.emol.com/noticias/Deportes/2026/10/27/1215315/cristiano-portugal-entrenanador-convocatoria.html", "outlet": "Emol", "lean": "nd", "about": "Website of the Chilean newspaper El Mercurio. Here it reproduces AFP reporting.", "rating": ""}, {"name": "Fichajes.com", "url": "https://www.fichajes.com/a3123930518364434973-nuevo-giro-en-el-caso-cristiano-ronaldo", "outlet": "Fichajes.com", "lean": "nd", "about": "Football rumours and news website.", "rating": ""}], "official": [], "why": "Ronaldo is the all-time top scorer in international football. His exit would close a chapter of more than twenty years.", "terms": [], "visual": {"type": "claims", "title": "Who says what", "items": [{"who": "Anadolu", "says": "Announced he will leave the national team after the November matches.", "ok": "una"}, {"who": "Ronaldo himself (30 Sept, via beIN)", "says": "Ruled out retiring from the national team.", "ok": "una"}, {"who": "Portuguese Football Federation", "says": "I have not found confirmation.", "ok": "no"}], "source": "Anadolu, beIN Sports and Emol (AFP)"}}, {"id": "dep-premier", "cat": "Deportes", "title": "Premier League gameweek 10 kicks off with Everton v Coventry", "summary": "The gameweek opens tonight at 20:00 (London time) with Everton v Coventry. According to one preview, Arsenal could go six points clear if they win their match.", "why": "Newly promoted Coventry play away at a direct rival. And the weekend could open a gap at the top of the table.", "terms": [], "visual": {"type": "claims", "title": "What is confirmed", "items": [{"who": "Premier League and ESPN", "says": "Everton and Coventry open the gameweek today at 20:00.", "ok": "si"}, {"who": "dave.sport", "says": "Arsenal could go six points clear.", "ok": "una"}], "source": "Premier League, ESPN and dave.sport"}, "status": "parcial", "check": "The kick-off time is confirmed by the Premier League website and ESPN. The six points claim comes only from one preview and I have not checked the table.", "facts": ["Friday 6 November, 20:00 GMT"], "sources": [{"name": "Premier League", "url": "https://www.premierleague.com/en/news/4725574/fixture-amendments-for-premier-league-matches-in-november", "outlet": "Premier League", "lean": "oficial", "about": "Official website of the competition.", "rating": ""}, {"name": "ESPN", "url": "https://www.espn.com/soccer/schedule/_/league/eng.1", "outlet": "ESPN", "lean": "nd", "about": "US sports network.", "rating": ""}, {"name": "dave.sport", "url": "https://dave.sport/news/premier-league-gameweek-10-preview-november-2026/", "outlet": "dave.sport", "lean": "nd", "about": "Sports previews and betting website.", "rating": ""}], "official": []}, {"id": "dep-f1", "cat": "Deportes", "title": "Formula 1: São Paulo Grand Prix weekend starts at Interlagos", "summary": "The first two free practice sessions run today at Interlagos (15:30 and 19:00, London time). Qualifying is tomorrow at 18:00 and the 71-lap race is on Sunday at 17:00. There is no sprint race.", "why": "Only a few races remain in the championship and every point counts in the title fight.", "terms": [{"t": "Free practice", "d": "Practice sessions without points to set up the car."}], "visual": {"type": "timeline", "title": "The weekend (London time)", "items": [{"date": "Fri 15:30", "label": "Practice 1", "hl": true}, {"date": "Fri 19:00", "label": "Practice 2", "hl": true}, {"date": "Sat 14:30", "label": "Practice 3"}, {"date": "Sat 18:00", "label": "Qualifying"}, {"date": "Sun 17:00", "label": "Race"}], "source": "The Race and Oversteer48"}, "status": "confirmada", "check": "The Race, RacingNews365, Oversteer48 and F1 Fansite agree on the times. They disagree on the round number (19th or 21st), so I do not give it. A travel website mentions a sprint, but the others say there is none.", "facts": ["Circuit: Autódromo José Carlos Pace (Interlagos)", "2025 winner: Lando Norris"], "sources": [{"name": "The Race", "url": "https://the-race.com/formula-1/what-time-is-f1s-2026-brazilian-grand-prix-full-weekend-schedule", "outlet": "The Race", "lean": "nd", "about": "British motorsport website.", "rating": ""}, {"name": "RacingNews365", "url": "https://racingnews365.com/f1/races/brazilian-gp", "outlet": "RacingNews365", "lean": "nd", "about": "Dutch Formula 1 website.", "rating": ""}, {"name": "Oversteer48", "url": "https://oversteer48.com/?p=25889", "outlet": "Oversteer48", "lean": "nd", "about": "Formula 1 blog.", "rating": ""}], "official": []}, {"id": "dep-futsal", "cat": "Deportes", "title": "Futsal: Spain and Portugal in the Finalissima semi-finals", "summary": "According to EFE's agenda, Spain play Portugal today in a futsal Finalissima semi-final in Niterói (Brazil).", "why": "Spain and Portugal are two of the best futsal teams in the world.", "terms": [{"t": "Finalissima", "d": "Tournament between champions from different continents."}], "visual": {"type": "claims", "title": "What we know", "items": [{"who": "EFE (agenda)", "says": "Spain and Portugal play a semi-final today in Niterói.", "ok": "una"}, {"who": "No source", "says": "Kick-off time and result.", "ok": "no"}], "source": "EFE news agenda"}, "status": "una_fuente", "check": "It appears only in EFE's news agenda. I have not found the tournament's official website.", "facts": ["Venue: Niterói, Brazil"], "sources": [{"name": "EFE news agency (via Infobae)", "url": "https://www.infobae.com/america/agencias/2026/11/06/agenda-informativa-multisoporte-america-para-el-6-de-noviembre-2026/", "outlet": "EFE news agency", "lean": "centro", "about": "Spanish public news agency, owned by SEPI (the State). Infobae republishes its report.", "rating": "MBFC: least biased, high reliability"}], "official": []}], "brief": ["The Bank of England raises rates to 4% and expects inflation near 5% by mid 2027.", "In Spain, police arrest 12 members of Núcleo Nacional in seven provinces, three weeks before the 29 November general election.", "Wall Street had its worst session since April 2025 on the AI stock sell-off; Marvell buys Lumentum for $115bn.", "Paraguay is in crisis over the collapse of Ueno Bank and New Zealand votes tomorrow.", "Doubtful today: Peña's resignation claimed by Anadolu, the drone shootdown claimed by Iran, and Ronaldo's national team future."], "corrections": []}</script>
+<script>
+const CATS=["Reino Unido","España","Internacional","Economía y mercados","Tecnología","Ciencia y salud","Cultura","Deportes"];
+const CATL={"Todas": "All", "Reino Unido": "UK", "España": "Spain", "Internacional": "International", "Economía y mercados": "Economy and markets", "Tecnología": "Technology", "Ciencia y salud": "Science and health", "Cultura": "Culture", "Deportes": "Sport"}; const catL=c=>CATL[c]||c;
+const LOC="en-GB", USE_DB=false;
+const ST=["confirmada","parcial","una_fuente","contradictoria"];
+const STAMP={confirmada:"Verified",parcial:"Partial",una_fuente:"Single source",contradictoria:"Contradictory"};
+const STDESC={confirmada:"Two or more independent sources, or the official source, agree.",parcial:"The core is confirmed; some details are not.",una_fuente:"Only one outlet reports it.",contradictoria:"The sources disagree."};
+const LEANS=["izq","cizq","centro","cder","der","oficial","empresa","nd"];
+const LEANL={izq:"Left",cizq:"Centre left",centro:"Centre",cder:"Centre right",der:"Right",oficial:"Official source",empresa:"Company or broker",nd:"Not rated"};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl=u=>/^https:\/\//.test(u||"")?u:"";
+const strip=s=>String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const nodash=s=>String(s??"").replace(/\s[–—]\s/g,", ").replace(/[–—]/g,"-");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let seed=null; try{seed=JSON.parse($("#seed").textContent)}catch(e){}
+let editions={}; if(seed&&seed.date) editions[seed.date]=seed;
+let current=seed, cat="Todas", stF=null, outletF=null, query="", sample=null;
+let openIds=new Set(), readIds=new Set(store.get("bnw-read",[]));
+let blindF=false, follows=store.get("bnw-follow",[]), diet=store.get("bnw-diet",{}), dietSeen=new Set(store.get("bnw-diet-seen",[]));
+const canSpeak=("speechSynthesis" in window);
+
+const fmtDate=(d,o)=>{try{return new Date(d+"T12:00:00Z").toLocaleDateString(LOC,o||{weekday:"long",day:"numeric",month:"long",year:"numeric"})}catch(e){return d}};
+const edNo=d=>{const n=Math.round((Date.parse(d+"T12:00:00Z")-Date.parse("2026-11-06T12:00:00Z"))/864e5)+1;return String(Math.max(1,n)).padStart(3,"0")};
+const leanOf=x=>LEANS.includes(x.lean)?x.lean:"nd";
+const outletOf=x=>x.outlet||x.name;
+const SIDE_L=["izq","cizq"], SIDE_R=["cder","der"], RATED=["izq","cizq","centro","cder","der"];
+function blind(s){
+  const rs=(s.sources||[]).filter(x=>RATED.includes(leanOf(x)));
+  if(new Set(rs.map(outletOf)).size<2) return null;
+  const ls=rs.map(leanOf);
+  if(ls.includes("centro")) return null;
+  const L=ls.some(l=>SIDE_L.includes(l)), R=ls.some(l=>SIDE_R.includes(l));
+  if(L&&!R) return "only left or centre-left sources";
+  if(R&&!L) return "only right or centre-right sources";
+  return null;
+}
+function hayOf(s){return strip([s.title,s.summary,s.check,(s.facts||[]).join(" ")].join(" "))}
+function followedBy(s){const h=hayOf(s);return follows.filter(w=>h.includes(strip(w)))}
+function countDiet(s){ if(!s||dietSeen.has(current.date+"/"+s.id)) return; dietSeen.add(current.date+"/"+s.id);
+  (s.sources||[]).forEach(x=>{const l=leanOf(x);diet[l]=(diet[l]||0)+1});
+  store.set("bnw-diet",diet); store.set("bnw-diet-seen",[...dietSeen]); }
+let speakingId=null;
+function speak(text,id){
+  if(!canSpeak){toast("Your browser cannot read aloud");return}
+  if(speakingId===id){speechSynthesis.cancel();speakingId=null;render();return}
+  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang=LOC;
+  const v=speechSynthesis.getVoices().find(v=>/^es(-|_)ES/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^es/i.test(v.lang)); if(v)u.voice=v;
+  u.onend=u.onerror=()=>{if(speakingId===id){speakingId=null;render()}};
+  speakingId=id; speechSynthesis.speak(u); render();
+}
+
+function matches(s){
+  if(cat!=="Todas"&&s.cat!==cat) return false;
+  if(stF&&s.status!==stF) return false;
+  if(blindF&&!blind(s)) return false;
+  if(outletF&&!(s.sources||[]).some(x=>outletOf(x)===outletF)) return false;
+  if(query){const hay=strip([s.title,s.summary,s.why||"",s.check,(s.facts||[]).join(" "),(s.sources||[]).map(x=>outletOf(x)+" "+x.name).join(" ")].join(" "));
+    if(!strip(query).split(/\s+/).filter(Boolean).every(w=>hay.includes(w))) return false;}
+  return true;
+}
+function leanBar(srcs){
+  const c={}; srcs.forEach(x=>{const l=leanOf(x);c[l]=(c[l]||0)+1});
+  const tot=srcs.length||1;
+  return {html:`<div class="bar" role="img" aria-label="${esc(LEANS.filter(l=>c[l]).map(l=>c[l]+" "+LEANL[l]).join(", "))}">${LEANS.filter(l=>c[l]).map(l=>`<i style="width:${c[l]/tot*100}%;background:var(--l-${l})" title="${esc(LEANL[l])}: ${c[l]}"></i>`).join("")}</div>`,c};
+}
+
+function render(){
+  if(!current){$("#main").innerHTML=`<div class="empty">There are no editions in the archive yet.</div>`;return}
+  const all=current.stories||[];
+  $("#fecha").innerHTML=`Bulletin No. <b>${edNo(current.date)}</b> · ${esc(fmtDate(current.date))}`;
+  $("#tapeLbl").textContent="Bulletin "+edNo(current.date);
+  const items=all.map((s,i)=>`<button data-go="${esc(s.id)}">${esc(String(i+1).padStart(2,"0"))} · ${esc(s.title)}</button><span class="sep">■</span>`).join("");
+  $("#track").innerHTML=items+items;
+  requestAnimationFrame(()=>{const tr=$("#track");const w=tr.scrollWidth/2;if(w>0)tr.style.animationDuration=Math.round(w/45)+"s"});
+  // pestañas
+  $("#tabs").innerHTML=["Todas",...CATS].map(c=>`<button aria-pressed="${c===cat}" data-c="${esc(c)}">${esc(catL(c))}<small>${c==="Todas"?all.length:all.filter(s=>s.cat===c).length}</small></button>`).join("");
+  renderBrief(); renderErrata(); renderMe();
+  const nBlind=all.filter(blind).length; $("#blindBtn").textContent="Blind spots ("+nBlind+")"; $("#blindBtn").setAttribute("aria-pressed",blindF);
+  // panel
+  const cnt=Object.fromEntries(ST.map(k=>[k,all.filter(s=>s.status===k).length]));
+  const allSrc=all.flatMap(s=>s.sources||[]); const seen=new Map(); allSrc.forEach(x=>{if(!seen.has(outletOf(x)))seen.set(outletOf(x),x)});
+  const lb=leanBar([...seen.values()]);
+  $("#board").innerHTML=ST.map(k=>`<button class="stamp-tile s-${k}" data-st="${k}" aria-pressed="${stF===k}"><span class="n">${cnt[k]}</span><span class="l">${STAMP[k]}</span><span class="d">${STDESC[k]}</span></button>`).join("")+
+    `<div class="thermo"><h3>Source thermometer · ${seen.size} different outlets</h3>${lb.html}<div class="legend">${LEANS.filter(l=>lb.c[l]).map(l=>`<span><i style="background:var(--l-${l})"></i>${esc(LEANL[l])} ${lb.c[l]}</span>`).join("")}</div><p>Tap "Today's sources" to see who each outlet is.</p></div>`;
+  // estado del filtro
+  const list=all.filter(matches);
+  const f=[]; if(cat!=="Todas")f.push(catL(cat)); if(stF)f.push(STAMP[stF]); if(outletF)f.push("outlet: "+outletF); if(blindF)f.push("blind spots"); if(query)f.push("«"+query+"»");
+  $("#status").innerHTML=f.length?`Showing <b>${list.length}</b> of ${all.length} stories · ${esc(f.join(" · "))} · <button id="clear">Clear filters</button>`:`<b>${all.length}</b> stories in this edition · ${readIds.size?all.filter(s=>readIds.has(s.id)).length+" read":"none read"}`;
+  renderOutside(list);
+  const searching=query.length>=2; document.body.classList.toggle("searching",searching);
+  const ob=$("#outside"), mn=$("#main");
+  if(searching&&list.length){ if(ob.previousElementSibling!==mn) mn.after(ob); } else if(ob.nextElementSibling!==mn) mn.before(ob);
+  // expedientes
+  const cats=cat==="Todas"?CATS:[cat];
+  const html=cats.map(c=>{const l=list.filter(s=>s.cat===c); if(!l.length) return "";
+    return `<section class="sec"><h2><span class="no">${String(CATS.indexOf(c)+1).padStart(2,"0")}</span>${esc(catL(c))}<small>${l.length===5&&!query&&!stF&&!blindF&&!outletF?"Today's top 5":l.length+" "+(l.length===1?"story":"stories")}</small></h2><div class="grid${l.length===5?" g5":""}">${l.map(s=>card(s,all.indexOf(s)+1)).join("")}</div></section>`}).join("");
+  $("#main").innerHTML=html||(query.length>=2&&cat==="Todas"&&!stF&&!outletF&&!blindF?"":`<div class="empty">No story matches the filters. <button class="btn" id="clear2">Clear filters</button></div>`);
+  // ediciones
+  const dates=Object.keys(editions).sort().reverse();
+  $("#ed").innerHTML=dates.map(x=>`<option value="${esc(x)}"${x===current.date?" selected":""}>No. ${edNo(x)} · ${esc(fmtDate(x,{day:"numeric",month:"short"}))}</option>`).join("");
+  renderDir();
+}
+function card(s,n){
+  const srcs=s.sources||[]; const lb=leanBar(srcs);
+  const open=openIds.has(s.id);
+  const facts=(s.facts||[]).map(x=>`<li>${esc(nodash(x))}</li>`).join("");
+  const src=srcs.map(x=>{const u=safeUrl(x.url);const l=leanOf(x);
+    return `<li><i style="background:var(--l-${l})" title="${esc(LEANL[l])}"></i>${u?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(nodash(x.name))}</a>`:`<b>${esc(nodash(x.name))}</b>`}<span class="ab">${esc(nodash(x.about||"No profile for this outlet."))}</span><span class="rt">${esc(x.rating?nodash(x.rating):LEANL[l])}</span></li>`}).join("");
+  const off=(s.official||[]).map(x=>{const u=safeUrl(x.url);return `<li><i style="background:var(--l-oficial)"></i>${u?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(nodash(x.name))}</a>`:`<b>${esc(nodash(x.name))}</b>`}${x.note?`<span class="ab">${esc(nodash(x.note))}</span>`:""}</li>`}).join("");
+  const chips=[...new Map(srcs.map(x=>[outletOf(x),x])).values()].map(x=>`<button class="chip" data-pop="${esc(outletOf(x))}" aria-expanded="false"><i style="background:var(--l-${leanOf(x)})"></i>${esc(nodash(outletOf(x)))}</button>`).join("");
+  return `<article class="file s-${esc(s.status)}${open?" open":""}${speakingId===s.id?" speaking":""}${readIds.has(s.id)?" read":""}" id="s-${esc(s.id)}">
+    <div class="hd"><span>File ${String(n).padStart(2,"0")} · ${esc(catL(s.cat))}</span><span class="red">${srcs.length} ${srcs.length===1?"source":"sources"}</span></div>
+    <div class="bd">
+      <span class="stamp">${esc(STAMP[s.status]||s.status)}</span>
+      ${(()=>{const b=blind(s),fw=followedBy(s);return (b||fw.length)?`<div class="flags">${b?`<span class="flag" title="Blind spot">Blind spot: ${esc(b)}</span>`:""}${fw.map(w=>`<span class="flag f">Following: ${esc(w)}</span>`).join("")}</div>`:""})()}
+      <h3><button class="ttl" data-act="toggle" aria-expanded="${open}">${esc(nodash(s.title))}</button></h3>
+      <p class="sum">${esc(nodash(s.summary))}</p>
+      ${!open&&s.visual?`<button class="peek" data-act="toggle">See chart: ${esc(nodash(s.visual.title||""))} ›</button>`:""}
+      <div class="mini"><div class="lab"><span>Leaning of its sources</span><span>${esc(LEANS.filter(l=>lb.c[l]).map(l=>lb.c[l]+" "+LEANL[l].toLowerCase()).join(" · "))}</span></div>${lb.html}</div>
+      <div class="chips">${chips}</div>
+      <div class="more">
+        ${s.why?`<p class="why"><b>Why it matters</b>${esc(nodash(s.why))}</p>`:""}
+        ${viz(s.visual)}
+        <p class="note"><b>Verification note.</b> ${esc(nodash(s.check))}</p>
+        ${(s.terms||[]).length?`<div><h4>Key terms</h4><dl class="terms">${s.terms.map(x=>`<dt>${esc(nodash(x.t))}</dt><dd>${esc(nodash(x.d))}</dd>`).join("")}</dl></div>`:""}
+        ${facts?`<div><h4>Key facts</h4><ul class="facts">${facts}</ul></div>`:""}
+        <div><h4>Sources and who they are</h4><ul class="srcs">${src}</ul></div>
+        ${off?`<div><h4>Official data</h4><ul class="srcs">${off}</ul></div>`:""}
+      </div>
+      <div class="acts">
+        <button data-act="toggle" aria-expanded="${open}">${open?"Close":"See chart and details"}</button>
+        ${sample?`<button class="ask" data-act="ask">Ask</button>`:""}
+        ${canSpeak?`<button data-act="speak">${speakingId===s.id?"Stop":"Listen"}</button>`:""}
+        <button data-act="read">${readIds.has(s.id)?"Mark as unread":"Mark as read"}</button>
+        <button data-act="link">Copy link</button>
+      </div>
+    </div>
+  </article>`;
+}
+function outlets(){
+  const m=new Map();
+  (current?.stories||[]).forEach(s=>(s.sources||[]).forEach(x=>{const k=outletOf(x);if(!m.has(k))m.set(k,{x,n:new Set()});m.get(k).n.add(s.id)}));
+  return m;
+}
+function renderDir(){
+  const m=outlets();
+  $("#dirTitle").textContent=m.size+" outlets cited in bulletin "+edNo(current.date);
+  $("#dirList").innerHTML=LEANS.map(l=>{const arr=[...m.entries()].filter(([k,v])=>leanOf(v.x)===l).sort((a,b)=>b[1].n.size-a[1].n.size);
+    if(!arr.length) return "";
+    return `<h5><i style="background:var(--l-${l})"></i>${esc(LEANL[l])}</h5>`+arr.map(([k,v])=>`<button class="o" data-outlet="${esc(k)}"><b>${esc(nodash(k))}<small>${v.n.size} ${v.n.size===1?"story":"stories"}</small></b><span>${esc(nodash(v.x.about||"No profile for this outlet."))}</span>${v.x.rating?`<em>${esc(nodash(v.x.rating))}</em>`:""}</button>`).join("");
+  }).join("");
+}
+
+// ---------- visuales ----------
+const fmtN=n=>Number(n).toLocaleString(LOC,{maximumFractionDigits:2});
+function vizBars(v){
+  const it=v.items||[]; if(!it.length) return "";
+  const allNeg=it.every(x=>+x.value<=0);
+  const mag=x=>allNeg?Math.abs(+x.value):Math.max(0,+x.value);
+  const refv=v.ref?+v.ref.value:null;
+  const mn=v.min!=null?+v.min:0;
+  const mx=Math.max(...it.map(mag),refv??0)*1.08||1;
+  const pct=val=>Math.max(1.5,(Math.max(val,mn)-mn)/((mx-mn)||1)*100);
+  const ref=refv!=null?`<div class="hb-ref" style="left:${pct(refv)}%"><span>${esc(nodash(v.ref.label))}</span></div>`:"";
+  return `<div class="hb">${it.map(x=>`<div class="hb-row${x.hl?" hl":""}${x.dim?" dim":""}"><div class="hb-l">${esc(nodash(x.label))}</div><div class="hb-t"><i style="width:${pct(mag(x))}%"></i><b style="left:calc(${pct(mag(x))}% + 6px)">${fmtN(x.value)}${esc(v.unit||"")}</b></div></div>`).join("")}<div class="hb-axis">${ref}</div>${v.min!=null?`<div class="hb-note">The scale starts at ${fmtN(v.min)} so the difference is visible.</div>`:""}</div>`;
+}
+function vizCompare(v){
+  const it=v.items||[]; const f=it[0]||{};
+  return `<div class="cmp">${it.map(x=>{const tot=(+x.a)+(+x.b)||1, wa=x.a/tot*100;
+    return `<div class="cmp-row"><div class="hb-l">${esc(nodash(x.label))}</div><div class="cmp-bar"><i class="a" style="width:${wa}%">${fmtN(x.a)}</i><i class="b" style="width:${100-wa}%">${fmtN(x.b)}</i><span class="half"></span></div>${x.note?`<div class="hb-note">${esc(nodash(x.note))}</div>`:""}</div>`}).join("")}
+    <div class="legend" style="margin-top:6px"><span><i style="background:var(--l-cizq)"></i>${esc(nodash(f.aL||""))}</span><span><i style="background:var(--l-der)"></i>${esc(nodash((it[it.length-1]||{}).bL||f.bL||""))}</span><span>The line marks the halfway point</span></div></div>`;
+}
+const OK={si:"Confirmed",una:"One source",no:"Unconfirmed"};
+function viz(v){
+  if(!v||!v.type) return "";
+  let body="";
+  if(v.type==="bars") body=vizBars(v);
+  else if(v.type==="compare") body=vizCompare(v);
+  else if(v.type==="timeline") body=`<ol class="tl">${(v.items||[]).map(x=>`<li class="${x.hl?"hl":""}"><b>${esc(nodash(x.date))}</b> ${esc(nodash(x.label))}</li>`).join("")}</ol>`;
+  else if(v.type==="steps") body=`<ol class="steps">${(v.items||[]).map((x,i)=>`<li class="${x.hl?"hl":""}${x.dim?" dim":""}"><span>${i+1}</span><div><em>${esc(nodash(x.label))}</em>${esc(nodash(x.text))}</div></li>`).join("")}</ol>`;
+  else if(v.type==="claims") body=`<ul class="claims">${(v.items||[]).map(x=>`<li><i class="${esc(x.ok)}">${esc(OK[x.ok]||"")}</i><b>${esc(nodash(x.who))}</b><span>${esc(nodash(x.says))}</span></li>`).join("")}</ul>`;
+  else if(v.type==="stat") body=`<div class="stats">${(v.items||[]).map(x=>`<div class="${x.dim?"dim":""}"><b>${esc(nodash(x.value))}</b><span>${esc(nodash(x.label))}</span></div>`).join("")}</div>`;
+  else return "";
+  return `<figure class="viz" style="margin:0"><h5>${esc(nodash(v.title||""))}</h5>${body}${v.source?`<figcaption class="src">Source: ${esc(nodash(v.source))}</figcaption>`:""}</figure>`;
+}
+
+// ---------- interacción ----------
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("on"),2200)}
+function closePop(){document.querySelectorAll(".pop").forEach(p=>p.remove());document.querySelectorAll('.chip[aria-expanded="true"]').forEach(c=>c.setAttribute("aria-expanded","false"))}
+function showPop(btn){
+  closePop(); const k=btn.dataset.pop; const v=outlets().get(k); if(!v) return;
+  const p=document.createElement("div"); p.className="pop"; p.setAttribute("role","tooltip");
+  p.innerHTML=`<b>${esc(nodash(k))}</b>${esc(nodash(v.x.about||"No profile for this outlet."))}<small>${esc(v.x.rating?nodash(v.x.rating):LEANL[leanOf(v.x)])}</small>`;
+  document.body.appendChild(p); const r=btn.getBoundingClientRect();
+  p.style.left=Math.min(window.scrollX+r.left,window.scrollX+document.documentElement.clientWidth-p.offsetWidth-12)+"px";
+  p.style.top=(window.scrollY+r.bottom+6)+"px"; btn.setAttribute("aria-expanded","true");
+}
+function go(id){
+  const s=(current.stories||[]).find(x=>x.id===id); if(!s) return;
+  if(!matches(s)){cat="Todas";stF=null;outletF=null;query="";$("#q").value=""}
+  openIds.add(id); render();
+  const el=document.getElementById("s-"+id); if(el){el.scrollIntoView({behavior:"smooth",block:"start"});el.querySelector("[data-act=toggle]")?.focus({preventScroll:true})}
+}
+function clearAll(){cat="Todas";stF=null;outletF=null;query="";$("#q").value="";render()}
+function drawer(id,on){["dir","chat","me"].forEach(d=>$("#"+d).classList.toggle("open",on&&d===id)); $("#scrim").classList.toggle("on",on); $("#fab").hidden=on||!sample; if(!on&&ctrl)ctrl.abort()}
+
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cat=b.dataset.c;render()});
+$("#board").addEventListener("click",e=>{const b=e.target.closest(".stamp-tile");if(!b)return;stF=stF===b.dataset.st?null:b.dataset.st;render()});
+$("#status").addEventListener("click",e=>{if(e.target.id==="clear")clearAll()});
+let qT=null;
+$("#q").addEventListener("input",e=>{query=e.target.value.trim();render();
+  clearTimeout(qT); if(query.length>=2) qT=setTimeout(()=>{const off=document.querySelector(".tape").offsetHeight+document.querySelector(".ctrl").offsetHeight+8;
+    const y=$("#status").getBoundingClientRect().top+scrollY-off; if(Math.abs(scrollY-y)>4) scrollTo({top:y,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})},350)});
+$("#lang").addEventListener("change",e=>{if(e.target.value)location.href=e.target.value});
+$("#ed").addEventListener("change",e=>{current=editions[e.target.value]||current;openIds.clear();outletF=null;render()});
+$("#track").addEventListener("click",e=>{const b=e.target.closest("button[data-go]");if(b)go(b.dataset.go)});
+$("#openDir").addEventListener("click",()=>drawer("dir",true));
+$("#dirList").addEventListener("click",e=>{const b=e.target.closest(".o");if(!b)return;outletF=b.dataset.outlet;cat="Todas";drawer("dir",false);render();window.scrollTo({top:$("#board").offsetTop-60,behavior:"smooth"})});
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>drawer(null,false)));
+$("#scrim").addEventListener("click",()=>drawer(null,false));
+$("#main").addEventListener("click",e=>{
+  if(e.target.id==="clear2"){clearAll();return}
+  const chip=e.target.closest(".chip"); if(chip){e.stopPropagation(); chip.getAttribute("aria-expanded")==="true"?closePop():showPop(chip); return}
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const art=b.closest("article"); const id=art.id.slice(2); const s=(current.stories||[]).find(x=>x.id===id);
+  const act=b.dataset.act;
+  if(act==="toggle"){if(!openIds.has(id))countDiet(s); openIds.has(id)?openIds.delete(id):openIds.add(id);render();document.querySelector(`#s-${CSS.escape(id)} [data-act=toggle]`)?.focus()}
+  else if(act==="speak"){speak(nodash(s.title+". "+s.summary+" "+(s.why?"Why it matters: "+s.why+" ":"")+"Status: "+(STAMP[s.status]||"")+". "+s.check),s.id)}
+  else if(act==="read"){if(!readIds.has(id))countDiet(s); readIds.has(id)?readIds.delete(id):readIds.add(id);store.set("bnw-read",[...readIds]);render()}
+  else if(act==="link"){try{location.hash="s-"+id}catch(_){}; navigator.clipboard?.writeText(location.href.split("#")[0]+"#s-"+id).then(()=>toast("Link copied")).catch(()=>toast("Could not copy the link"))}
+  else if(act==="ask"){openChat(s)}
+});
+document.addEventListener("click",e=>{if(!e.target.closest(".pop,.chip"))closePop()});
+document.addEventListener("keydown",e=>{
+  if(e.key==="/"&&!/input|textarea|select/i.test(document.activeElement.tagName)){e.preventDefault();$("#q").focus()}
+  if(e.key==="Escape"){closePop(); if(document.querySelector(".drawer.open"))drawer(null,false); else if(document.activeElement===$("#q")&&query){clearAll()}}
+});
+window.addEventListener("resize",closePop);
+
+function renderBrief(){
+  const b=current.brief||[]; if(!b.length){$("#brief").innerHTML="";return}
+  $("#brief").innerHTML=`<div class="box"><h3>The day in 60 seconds<small>Bulletin ${edNo(current.date)}</small></h3><ol>${b.map(x=>`<li>${esc(nodash(x))}</li>`).join("")}</ol><div class="side">${canSpeak?`<button class="btn" id="speakBrief">${speakingId==="brief"?"Stop":"Listen"}</button>`:""}${sample?`<button class="btn red" id="askBrief">Ask</button>`:""}</div></div>`;
+}
+function renderErrata(){
+  const all=Object.values(editions).flatMap(e=>(e.corrections||[]).map(c=>({...c,ed:e.date}))).sort((a,b)=>(b.date||b.ed).localeCompare(a.date||a.ed));
+  $("#errata").innerHTML=`<div class="box"><h3>Corrections</h3>${all.length?`<ul>${all.map(c=>`<li><b>${esc(fmtDate(c.date||c.ed,{day:"numeric",month:"short"}))}.</b> ${esc(nodash(c.text))}</li>`).join("")}</ul>`:`<p>No corrections published. If a story in an earlier bulletin turns out to be wrong, the correction will appear here.</p>`}</div>`;
+}
+function renderMe(){
+  const tot=Object.values(diet).reduce((a,b)=>a+b,0);
+  const fake=Object.entries(diet).flatMap(([l,n])=>Array(n).fill({lean:l}));
+  const lb=leanBar(fake);
+  const L=(diet.izq||0)+(diet.cizq||0), R=(diet.cder||0)+(diet.der||0);
+  const msg=!tot?"Open or mark some stories as read and you will see the leaning of the sources you have read here.":
+    L&&!R?"Everything you have read comes from left, centre-left or unrated sources. Try opening stories with sources from the other side.":
+    R&&!L?"Everything you have read comes from right, centre-right or unrated sources. Try opening stories with sources from the other side.":
+    "You have read sources from several leanings.";
+  $("#meBody").innerHTML=`<div><h4>Your news diet</h4>${tot?lb.html:""}<div class="legend" style="margin-top:6px">${LEANS.filter(l=>lb.c[l]).map(l=>`<span><i style="background:var(--l-${l})"></i>${esc(LEANL[l])} ${lb.c[l]}</span>`).join("")}</div><p style="margin-top:8px">${esc(msg)}</p><p style="margin-top:6px">It is saved only in this browser. ${tot?`<button class="btn" id="resetDiet" style="margin-top:8px">Clear history</button>`:""}</p></div>
+  <div><h4>Topics you follow</h4><p>Stories that mention these topics will be marked "Following".</p>
+  <form id="followForm" style="margin-top:8px"><input id="followIn" placeholder="For example: housing, ECB, Hormuz" aria-label="Topic to follow"><button>Follow</button></form>
+  <div class="tags">${follows.map(w=>`<span>${esc(w)}<button data-unfollow="${esc(w)}" aria-label="Unfollow ${esc(w)}">×</button></span>`).join("")}</div>
+  ${follows.length?(()=>{const n=(current.stories||[]).filter(s=>followedBy(s).length).length;return `<p style="margin-top:8px">${n===1?"1 story matches today.":n+" stories match today."}</p>`})():""}</div>`;
+}
+$("#blindBtn").addEventListener("click",()=>{blindF=!blindF;render()});
+$("#openMe").addEventListener("click",()=>{renderMe();drawer("me",true)});
+$("#meBody").addEventListener("click",e=>{
+  const u=e.target.closest("[data-unfollow]"); if(u){follows=follows.filter(w=>w!==u.dataset.unfollow);store.set("bnw-follow",follows);render();return}
+  if(e.target.id==="resetDiet"){diet={};dietSeen=new Set();store.set("bnw-diet",{});store.set("bnw-diet-seen",[]);render();toast("History cleared")}
+});
+$("#meBody").addEventListener("submit",e=>{e.preventDefault();const v=$("#followIn").value.trim();if(v&&!follows.includes(v)){follows.push(v);store.set("bnw-follow",follows)}render();$("#followIn")?.focus()});
+$("#brief").addEventListener("click",e=>{
+  if(e.target.id==="speakBrief") speak(nodash("The day in sixty seconds. "+(current.brief||[]).join(" ")),"brief");
+  if(e.target.id==="askBrief") openChat(null);
+});
+
+// ---------- ediciones (db) ----------
+function unwrap(r){ if(!r) return null; if(typeof r.data==="function") return r.data(); if(r.data&&typeof r.data==="object") return r.data; return r; }
+function parseEd(raw){ const d=unwrap(raw); if(!d) return null; if(typeof d.json==="string"){try{return JSON.parse(d.json)}catch(e){return null}} return d.stories?d:null; }
+async function loadDb(){
+  if(!USE_DB||typeof claude==="undefined"||!claude.use) return;
+  try{
+    const db=await claude.use("db"); if(!db) return;
+    let timer; const timeout=new Promise((_,rej)=>{timer=setTimeout(()=>rej(new Error("timeout")),10000)});
+    const res=await Promise.race([db.collection("editions").orderBy("date","desc").limit(30).get(),timeout]); clearTimeout(timer);
+    const docs=Array.isArray(res)?res:(res&&res.docs)||[];
+    let added=0; for(const d of docs){const ed=parseEd(d); if(ed&&ed.date){const cur=editions[ed.date]; if(!cur||(ed.generated||"")>(cur.generated||"")){editions[ed.date]=ed;added++}}}
+    const latest=Object.keys(editions).sort().pop();
+    if(latest&&(!current||latest>current.date)) current=editions[latest];
+    if(added) render();
+  }catch(e){ $("#status").insertAdjacentHTML("beforeend"," · Could not load the edition archive; showing the edition included in the page."); }
+}
+
+// ---------- terminal (sample) ----------
+let chatCtx=null, history=[], busy=false, ctrl=null;
+const SYS=`Eres la terminal de consulta del diario "Brave New World". Respondes SIEMPRE en inglés, de forma breve y clara, aunque los DATOS estén en otro idioma.
+Reglas:
+- No uses nunca guiones largos ni medios (los caracteres – y —). Usa comas, dos puntos o punto y seguido.
+- Basa tus respuestas en los DATOS que se te dan (resumen, nota de verificación, datos clave, fuentes con su ficha y tendencia, datos oficiales).
+- Si usas conocimiento general fuera de esos datos, márcalo con "(contexto general, no verificado hoy)". Tu conocimiento puede estar desactualizado.
+- No puedes navegar por internet. Si algo no está en los datos, dilo ("No lo tengo en las fuentes de hoy") y sugiere qué fuente oficial o medio consultar.
+- No inventes cifras, citas, enlaces ni nombres. No atribuyas frases textuales a personas reales salvo que estén en los datos.
+- Respeta la etiqueta de verificación: si es "una_fuente" o "contradictoria", recuérdalo cuando importe.
+- Cuando hables de la tendencia de un medio, di de quién es la valoración (AllSides o MBFC) y que esas escalas son estadounidenses.
+- En temas políticos, sé neutral: describe hechos y posiciones, sin opinar.`;
+function ctxFor(s){
+  if(s) return {kind:"Story · "+catL(s.cat),title:s.title,data:JSON.stringify({...s,punto_ciego:blind(s)})};
+  const brief=(current?.stories||[]).map(x=>({id:x.id,cat:x.cat,title:x.title,status:x.status,summary:x.summary,facts:x.facts,check:x.check,punto_ciego:blind(x),sources:(x.sources||[]).map(y=>({outlet:outletOf(y),lean:y.lean,rating:y.rating}))}));
+  return {kind:"Bulletin "+edNo(current.date),title:fmtDate(current.date),data:JSON.stringify({resumen:current.brief||[],noticias:brief})};
+}
+function renderOutside(list){
+  const box=$("#outside");
+  if(query.length<2){box.hidden=true;box.innerHTML="";return}
+  const q=encodeURIComponent(query);
+  const L=[["Google News (Spain)",`https://news.google.com/search?q=${q}&hl=es&gl=ES&ceid=ES:es`],["Google News (UK)",`https://news.google.com/search?q=${q}&hl=en-GB&gl=GB&ceid=GB:en`],["Bing News",`https://www.bing.com/news/search?q=${q}`],["BBC",`https://www.bbc.co.uk/search?q=${q}`],["Reuters",`https://www.reuters.com/site-search/?query=${q}`]];
+  box.hidden=false;
+  box.innerHTML=`<div class="box"><h3>Beyond today's bulletin: <b>«${esc(query)}»</b></h3>
+  <p>${list.length?`${list.length} ${list.length===1?"story":"stories"} from today mention it (below). `:"No story from today mentions it. "}These searches open live news in another tab. They are not verified by Brave New World.</p>
+  <div class="links">${L.map(([n,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)} ↗</a>`).join("")}</div>
+  ${sample?`<button class="askq" id="askTopic" type="button">Ask the terminal for context</button><p>The terminal does not browse the internet: it gives background from what it knows, marked as unverified, and may be out of date.</p>`:""}</div>`;
+}
+function openTopic(topic){
+  const rel=(current?.stories||[]).filter(matches).map(x=>({title:x.title,status:x.status,summary:x.summary,check:x.check}));
+  chatCtx={kind:"Free search",title:"«"+topic+"»",data:JSON.stringify({tema:topic,expedientes_de_hoy_relacionados:rel,aviso:"Este tema puede no estar en el boletín de hoy. No tienes acceso a internet ni a noticias de hoy fuera de estos expedientes."})};
+  history=[];
+  $("#chatKind").textContent=chatCtx.kind; $("#chatTitle").textContent=nodash(chatCtx.title); $("#msgs").innerHTML="";
+  $("#sugg").innerHTML=["What is it and why does it matter?","What have been its most important milestones?","What should I search for to see the latest?"].map(t=>`<button type="button">${esc(t)}</button>`).join("");
+  drawer("chat",true);
+  ask(`(Responde en inglés.) Dame el contexto más relevante sobre «${topic}»: quién o qué es y sus hechos más importantes que conozcas. Empieza diciendo claramente si aparece o no en los expedientes de hoy. Todo lo que no esté en los expedientes márcalo como contexto general no verificado hoy, indica hasta cuándo llega tu conocimiento y no inventes noticias recientes. Termina con dos o tres búsquedas concretas para ver lo último.`);
+}
+document.addEventListener("click",e=>{if(e.target.closest("#askTopic"))openTopic(query)});
+function openChat(s){
+  if(s)countDiet(s);
+  chatCtx=ctxFor(s); history=[];
+  $("#chatKind").textContent=chatCtx.kind; $("#chatTitle").textContent=nodash(chatCtx.title); $("#msgs").innerHTML="";
+  const sug=s?["Explain it simply","What is confirmed and what is not?","What do we still not know?","What leaning do its sources have?","What do the official figures say?"]:["Sum up the day in five points","Which stories are most doubtful?","What blind spots are there today?","What affects me if I live in London?"];
+  $("#sugg").innerHTML=sug.map(t=>`<button type="button">${esc(t)}</button>`).join("");
+  drawer("chat",true); $("#ask").focus();
+}
+function addMsg(role,text){const d=document.createElement("div");d.className="m "+(role==="user"?"u":"a");d.textContent=text;$("#msgs").appendChild(d);$("#msgs").scrollTop=1e9;return d}
+async function ask(text){
+  if(busy||!text.trim()||!sample) return; busy=true;
+  addMsg("user",text); const out=addMsg("assistant","Checking the archive…");
+  const first=`${SYS}\n\nDATOS (JSON):\n${chatCtx.data}\n\nPregunta: `;
+  const msgs=history.length?[...history,{role:"user",content:text}]:[{role:"user",content:first+text}];
+  ctrl=new AbortController();
+  try{
+    const r=await sample(msgs,{cache:false,signal:ctrl.signal,onText:({text:t})=>{out.textContent=nodash(t);$("#msgs").scrollTop=1e9}});
+    out.textContent=nodash(r.text||out.textContent); history=[...msgs,{role:"assistant",content:r.text||""}];
+  }catch(e){
+    out.textContent=e&&e.code==="rate_limited"?"You have asked a lot of questions in a row. Wait a moment and try again.":e&&e.code==="not_granted"?"The terminal has no permission in this view. Open it on claude.ai and accept the permission.":e&&e.name==="AbortError"?"Query cancelled.":"Could not get an answer. Please try again.";
+  }finally{busy=false}
+}
+$("#fab").addEventListener("click",()=>openChat(null));
+$("#sugg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)ask(b.textContent)});
+$("#form").addEventListener("submit",e=>{e.preventDefault();const v=$("#ask").value;$("#ask").value="";ask(v)});
+
+// barra fija
+(function(){const tape=document.querySelector(".tape"),ctrl=document.querySelector(".ctrl"),mast=document.querySelector(".mast");
+  const setH=()=>document.documentElement.style.setProperty("--tapeH",tape.offsetHeight+"px");
+  setH(); addEventListener("resize",setH);
+  const onS=()=>ctrl.classList.toggle("stuck",mast.getBoundingClientRect().bottom<=tape.offsetHeight);
+  addEventListener("scroll",onS,{passive:true}); onS();})();
+// arranque
+(function(){const h=(location.hash||"").replace("#",""); render(); if(h.startsWith("s-")) go(h.slice(2));})();
+window.addEventListener("hashchange",()=>{const h=location.hash.replace("#","");if(h.startsWith("s-"))go(h.slice(2))});
+(async()=>{
+  try{ sample=(typeof claude!=="undefined"&&claude.use)?await claude.use("sample"):null; }catch(e){ sample=null; }
+  if(sample){ $("#fab").hidden=false; render(); }
+  loadDb();
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,8 @@ A daily news briefing in Spanish, with a 1984-style look. It covers the UK, Spai
 
 **▶ Open it:** https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/
 
+**Languages:** [Español](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/) · [English](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/en/) · [Português](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/pt/) · [中文](https://dcalabuig7.github.io/Vibe%20Coding%20Projects/05-brave-new-world/zh/)
+
 ## What it does
 
 - **8 sections, 5 stories each:** UK, Spain, International, Economy and markets, Technology, Science and health, Culture, Sport.
@@ -18,6 +20,7 @@ A daily news briefing in Spanish, with a 1984-style look. It covers the UK, Spai
 - **Search:** finds stories in today's edition. If a topic isn't there, it offers live searches on Google News, Bing, BBC and Reuters.
 - **Blind spots:** flags stories where all the rated sources lean the same way.
 - **"Mi lectura":** follow topics and see what you have read. This is saved only in your browser.
+- **4 languages:** Spanish, English, Portuguese and Chinese. Pick one in the menu at the top right. The buttons and all 40 stories are translated, not machine translated on the fly.
 - **iPhone widget:** live headlines by section on your home screen (see below).
 
 ## How to run it
@@ -25,15 +28,20 @@ A daily news briefing in Spanish, with a 1984-style look. It covers the UK, Spai
 - **In the browser:** open the link above. Nothing to install.
 - **Offline:** download the repository and double-click `index.html`.
 
-The chatbot ("Terminal de consulta") and the editions saved for other days only work when the page is opened inside Claude. Here, outside Claude, it shows the edition included in the page (6 November 2026).
+The chatbot ("Terminal de consulta") and the editions saved for other days only work when the page is opened inside Claude. Here, outside Claude, it shows the edition included in the page (6 November 2026). New daily editions are written in Spanish only; the translations cover this edition.
 
 ## Files
 
 | File | What it is |
 |------|------------|
-| `index.html` | The whole newspaper in one page: layout, styles, code and today's stories. |
+| `index.html` | The whole newspaper in Spanish, in one page: layout, styles, code and today's stories. |
+| `en/`, `pt/`, `zh/` | The same newspaper in English, Portuguese and Chinese. |
 | `assets/logo.webp` | The logo. |
 | `data/edition-2026-11-06.json` | The day's stories, with sources, stamps and charts. |
+| `data/edition-2026-11-06-en.json` (and `-pt`, `-zh`) | The same stories, translated. |
+| `tools/strings_es.json`, `tools/tr/*.tsv` | Every piece of story text in Spanish, and its translation into each language. |
+| `tools/ui_i18n.py` | The translations of the buttons and labels. |
+| `tools/build_i18n.py` | Builds the 4 language versions. |
 | `tools/template.html` | The page without stories. The stories get poured into it. |
 | `tools/*.py` | Python scripts that built the edition file. |
 | `widget/BraveNewWorld-widget.js` | The iPhone widget for the Scriptable app. |
@@ -44,11 +52,13 @@ Think of it as a **printing press**:
 
 1. **The news (`data/*.json`)** is the ink. Each story is a small record: title, summary, stamp, sources, chart.
 2. **The template (`tools/template.html`)** is the empty page with a hole marked `__SEED__`.
-3. **Printing** pours the news into that hole, and the result is `index.html`:
+3. **Printing** pours the news into that hole. It does it four times, once per language, swapping the Spanish texts for their translations:
 
    ```
-   python3 -c "import json;d=json.load(open('data/edition-2026-11-06.json'));s=json.dumps(d,ensure_ascii=False).replace('</','<\\/');open('index.html','w').write(open('tools/template.html').read().replace('__SEED__',s))"
+   python3 tools/build_i18n.py . data/edition-2026-11-06.json
    ```
+
+   That writes `index.html` (Spanish) and `en/`, `pt/` and `zh/`.
 4. **In the browser**, the page's JavaScript reads the stories and draws the cards, charts, filters and search.
 
 ## iPhone widget
@@ -68,3 +78,4 @@ The widget shows live headlines from El País and the BBC. These headlines are *
 - How to make a **sticky header**, live **search** and **filters** with JavaScript.
 - How to make a page **readable on a phone** with media queries.
 - How to build an **iPhone widget** with Scriptable that reads RSS feeds.
+- How to make a site **multilingual**: keep every text in one place, translate it once, and build one page per language.
